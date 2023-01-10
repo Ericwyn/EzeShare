@@ -13,8 +13,8 @@ EzeShare 一个跨平台文件传输项目，支持 Pc / Android
     - BLE 广播
 
 ## 基本发送逻辑
- - Receiver 开启一个 EzeShareServer (Port: 23019)
- - Receiver 广播自己的 ip 地址
+ - Receiver 开启一个 EzeShareServer (Http Port: 23019, Udp Port: 23010)
+ - Receiver 广播自己的 ip 地址 (向 255.255.255.255:23010 发送 udp 广播)
  - Sender 扫描得到 Receiver 列表
  - Sender 选择一个 Receiver，访问 `receiverRequest` 接口发送数据
  - Receiver 端手动确认，返回一个 token (经过 Sender 公钥加密) 以及 Receiver 公钥
