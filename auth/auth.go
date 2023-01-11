@@ -9,21 +9,39 @@ import (
 	"github.com/Ericwyn/EzeShare/log"
 	"github.com/Ericwyn/EzeShare/storage"
 	"github.com/Ericwyn/GoTools/file"
+	"github.com/google/uuid"
 	"os"
 )
 
 const rsaKeyBits = 2048
 
 // TokenGen 生成认证 token
-func TokenGen() {
+func TokenGen(reGeneral bool) {
+	// 生成一个随机的 64 位字符串作为程序的 Token
 
+	if !reGeneral {
+		if exits, _ := storage.GetTokenFromDB(); exits {
+			log.I("token already general")
+			return
+		}
+	}
+
+	newToken := uuid.New().String()
+	log.I("general new token: " + newToken)
+
+	storage.SaveToken(newToken)
+}
+
+func GetToken() string {
+	_, s := storage.GetTokenFromDB()
+	return s
 }
 
 func isRsaKeyExits() bool {
 	privateKeyFile := file.OpenFile(GetRsaPrivateKeyPath())
 	publicKeyFile := file.OpenFile(GetRsaPublicKeyPath())
 	if privateKeyFile.Exits() || publicKeyFile.Exits() {
-		log.I("rsa key alardey")
+		log.I("rsa key already")
 		return true
 	}
 	return false

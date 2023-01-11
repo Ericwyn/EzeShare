@@ -30,3 +30,28 @@ func GetConfigDirPath() string {
 	log.D("get config dir path: " + configDirPath)
 	return configDirPath
 }
+
+// SaveToken 保存 Token
+func SaveToken(token string) {
+	tokenConfig := DbEzeShareConfig{
+		Key:   ConfigKeyToken,
+		Value: token,
+	}
+	_, err := sqlEngine.InsertOne(tokenConfig)
+	if err != nil {
+		log.E("save token error")
+		panic(err)
+	}
+}
+
+// GetTokenFromDB 获取 token，存在的话为 bool, string
+func GetTokenFromDB() (bool, string) {
+	var tokenConfig DbEzeShareConfig
+	exits, err := sqlEngine.Where("`key` = ?", ConfigKeyToken).Get(&tokenConfig)
+	if err != nil {
+		log.E("get token error")
+		panic(err)
+	}
+
+	return exits, tokenConfig.Value
+}

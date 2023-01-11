@@ -2,6 +2,7 @@ package auth
 
 import (
 	"github.com/Ericwyn/EzeShare/log"
+	"github.com/Ericwyn/EzeShare/storage"
 	"testing"
 )
 
@@ -24,5 +25,9 @@ func TestEncryptRSA(t *testing.T) {
 		panic(err)
 	}
 	log.I("decrypt: \n", decryptRSA)
+}
 
+func TestTokenGen(t *testing.T) {
+	storage.InitDb(true)
+	TokenGen(false)
 }
