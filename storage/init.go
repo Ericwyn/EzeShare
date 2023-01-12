@@ -35,7 +35,11 @@ func InitDb(showSql bool) {
 	}
 
 	// 同步表结构
-	err = sqlEngine.Sync2(new(DbEzeShareConfig), new(DbEzeShareConnect))
+	err = sqlEngine.Sync2(
+		new(DbEzeShareConfig),
+		new(DbEzeSharePerm),
+		new(DbEzeShareTransferMsg),
+	)
 	if err != nil {
 		fmt.Println(err)
 		log.E("SYNC TABLE ERROR!!")

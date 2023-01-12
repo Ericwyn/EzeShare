@@ -22,7 +22,7 @@ EzeShare 一个跨平台文件传输项目，支持 Pc / Android
  - Receiver 校验、接收数据
 
 ## 接收方接口
-- `/api/receiverRequest`
+- `/api/premReq`
 
   - 请求
     - type
@@ -38,7 +38,7 @@ EzeShare 一个跨平台文件传输项目，支持 Pc / Android
     - type: once / always
     - 接收方公钥
 
-- `/api/receiver`
+- `/api/fileTransfer`
 
   - 往这个接口发送数据就可以了
 
