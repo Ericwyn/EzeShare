@@ -104,6 +104,25 @@ func GetRsaPublicKeyPath() string {
 	return storage.GetConfigDirPath() + "/publicKey.pem"
 }
 
+// GetRsaPublicKey 获取公钥
+func GetRsaPublicKey() string {
+	keyFile := file.OpenFile(GetRsaPublicKeyPath())
+	if !keyFile.Exits() {
+		err := RSAGenKey(false)
+		if err != nil {
+			log.E("get rsa pub key error, gen new key fail")
+			return ""
+		}
+	}
+	keyFile = file.OpenFile(GetRsaPublicKeyPath())
+	data, err := keyFile.Read()
+	if err != nil {
+		log.E("read pub key data error")
+		log.E(err)
+	}
+	return string(data)
+}
+
 // EncryptRSA 对数据进行加密操作
 func EncryptRSA(str string, path string) (base64EncryptStr string, err error) {
 

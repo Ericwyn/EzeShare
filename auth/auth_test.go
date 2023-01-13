@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"fmt"
 	"github.com/Ericwyn/EzeShare/log"
 	"github.com/Ericwyn/EzeShare/storage"
+	"sync"
 	"testing"
 )
 
@@ -30,4 +32,15 @@ func TestEncryptRSA(t *testing.T) {
 func TestTokenGen(t *testing.T) {
 	storage.InitDb(true)
 	TokenGen(false)
+}
+
+func TestGetRsaPublicKey(t *testing.T) {
+	fmt.Println(GetRsaPublicKey())
+}
+
+func TestWaitGroup(t *testing.T) {
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	wg.Add(-1)
+	wg.Add(-1)
 }

@@ -1,4 +1,4 @@
-package http
+package api
 
 import (
 	"crypto/rand"
@@ -6,10 +6,13 @@ import (
 	"math/big"
 )
 
+const ApiPathPermReq = "/api/premReq"
+const ApiPathFileTransfer = "/api/fileTransfer"
+
 // 设置 API 路由
 func initAPI(router *gin.Engine) {
-	router.POST("/api/premReq", apiPermReq)
-	router.POST("api/fileTransfer", apiReceiver)
+	router.POST(ApiPathPermReq, apiPermReq)
+	router.POST(ApiPathFileTransfer, apiReceiver)
 }
 
 // NewMux 返回全局路由, 包括静态资源

@@ -1,13 +1,22 @@
-package http
+package api
 
 import "os"
 
 // 权限请求接口
 
+const RespCodeSuccess = 2000
+const RespCodeParamError = 4001
+
 type PermType string
 
 const PermTypeOnce PermType = "Once"     // 一次发送权限
 const PermTypeAlways PermType = "Always" // 永久发送权限
+
+type PermReqRespType string
+
+const PermReqRespAllowOnce PermReqRespType = "AllowOnce"
+const PermReqRespDisAllow PermReqRespType = "DisAllow"
+const PermReqRespAllowAlways PermReqRespType = "AllowAlways"
 
 type PubResp struct {
 	Code int
