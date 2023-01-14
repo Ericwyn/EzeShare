@@ -31,27 +31,32 @@ func GetConfigDirPath() string {
 	return configDirPath
 }
 
-// SaveToken 保存 Token
-func SaveToken(token string) {
-	tokenConfig := DbEzeShareConfig{
-		Key:   ConfigKeyToken,
-		Value: token,
+// SaveSelfToken 保存 OnceToken
+func SaveSelfToken(token string) {
+	tokenSelf := DbEzeSharePerm{
+		DeviceName: "Self",
+		DeviceType: "Self",
+		Token:      token,
+		PermType:   PermTypeAlways,
+		TokenType:  TokenTypeFromSelf,
 	}
-	_, err := sqlEngine.InsertOne(tokenConfig)
+
+	_, err := sqlEngine.InsertOne(tokenSelf)
 	if err != nil {
 		log.E("save token error")
 		panic(err)
 	}
 }
 
-// GetTokenFromDB 获取 token，存在的话为 bool, string
-func GetTokenFromDB() (bool, string) {
-	var tokenConfig DbEzeShareConfig
-	exits, err := sqlEngine.Where("`key` = ?", ConfigKeyToken).Get(&tokenConfig)
+// GetSelfTokenFromDB 获取 token，存在的话为 bool, string
+func GetSelfTokenFromDB() (bool, string) {
+	var tokenSelf DbEzeSharePerm
+	exits, err := sqlEngine.
+		Where("perm_type = ? and token_type = ?", PermTypeAlways, TokenTypeFromSelf).
+		Get(&tokenSelf)
 	if err != nil {
 		log.E("get token error")
 		panic(err)
 	}
-
-	return exits, tokenConfig.Value
+	return exits, tokenSelf.Token
 }

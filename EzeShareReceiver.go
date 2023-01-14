@@ -3,10 +3,12 @@ package main
 import (
 	"github.com/Ericwyn/EzeShare/api"
 	"github.com/Ericwyn/EzeShare/scan/udpscan"
+	"github.com/Ericwyn/EzeShare/storage"
 	"time"
 )
 
 func main() {
+	storage.InitDb(true)
 	// 开始向其他机器广播自己消息
 	scanType := udpscan.UdpScanType
 

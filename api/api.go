@@ -1,43 +1,177 @@
 package api
 
 import (
+	"github.com/Ericwyn/EzeShare/api/apidef"
+	"github.com/Ericwyn/EzeShare/auth"
+	"github.com/Ericwyn/EzeShare/log"
+	"github.com/Ericwyn/EzeShare/storage"
 	"github.com/Ericwyn/EzeShare/ui"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"sync"
+	"time"
 )
 
 var waitGroupMap = make(map[string]sync.WaitGroup)
 
 func apiPermReq(ctx *gin.Context) {
-	var reqBody ApiPermReq
+	var reqBody apidef.ApiPermReq
 	err := ctx.BindJSON(&reqBody)
 	if err != nil {
-		ctx.JSON(200, PubResp{
-			Code: RespCodeParamError,
+		ctx.JSON(200, apidef.PubResp{
+			Code: apidef.RespCodeParamError,
 			Msg:  "json parse error",
 		})
 		return
 	}
 
+	// 校验参数
+	if checkReq := reqBody.CheckReq(); checkReq != "" {
+		ctx.JSON(200, apidef.PubResp{
+			Code: apidef.RespCodeParamError,
+			Msg:  checkReq,
+		})
+		return
+	}
+
+	// 设置 req addr
+	reqBody.SenderAddr = ctx.ClientIP()
+
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	wg.Wait()
 
-	ui.TerminalUi.ShowPermReqUiAsync(reqBody, func(permType PermReqRespType) {
-		wg.Done()
+	wgDone := false
+	var permRespTypeFromUI apidef.PermReqRespType
 
+	// 60s 后解锁
+	go func() {
+		time.Sleep(60 * time.Second)
+		try(func() {
+			if !wgDone {
+				wg.Done()
+				wgDone = true
+			}
+			permRespTypeFromUI = apidef.PermReqRespDisAllow
+		}, func(i interface{}) {
+			log.I("wait group done panic, ", i)
+		})
+	}()
+
+	ui.TerminalUi.ShowPermReqUiAsync(reqBody, func(permType apidef.PermReqRespType) {
+		try(func() {
+			if !wgDone {
+				wg.Done()
+				wgDone = true
+			}
+		}, func(i interface{}) {
+			log.I("wait group done panic, ", i)
+		})
+		permRespTypeFromUI = permType
 	})
 
-	// TODO 阻塞处理 ？
+	// 开始阻塞等待回调
+	log.I("start wait for perm req ui callback")
+	wg.Wait()
 
-	// 如果允许
-	// 1. 签发 Token
-	// 2. 保存文件发送请求记录
-	// 如果拒绝
-	// 1. 直接返回拒绝
+	// 阻塞结束进行处理
+	log.I("perm req callback wait done, result: ", permRespTypeFromUI)
 
+	ctx.JSON(200, generalPermResp(reqBody, permRespTypeFromUI))
+}
+
+func generalPermResp(reqBody apidef.ApiPermReq, permRespType apidef.PermReqRespType) any {
+	if permRespType == apidef.PermReqRespAllowAlways {
+		// 拿到自己的 token
+		alwaysToken := auth.GetTokenSelf()
+		// 公钥加密
+		secToken, err := auth.EncryptRSAWithPubKeyStr(alwaysToken, reqBody.SenderPubKey)
+		if err != nil {
+			return apidef.PubResp{
+				Code: apidef.RespCodeParamError,
+				Msg:  "encrypt with rsa pub key error",
+			}
+		}
+
+		transferId := uuid.New().String()
+		// 写一条记录进去数据库
+		transferMsg := storage.DbEzeShareTransferMsg{
+			TransferId:        transferId,
+			FileName:          reqBody.FileName,
+			FileSizeKb:        reqBody.FileSizeKb,
+			OnceToken:         "",
+			TransferStatus:    storage.TransferStatusPreSend,
+			FromDeviceName:    reqBody.SenderName,
+			FromDeviceAddress: reqBody.SenderAddr,
+			RequestTime:       time.Now(),
+		}
+		storage.SavePreTransferMsg(transferMsg)
+
+		return apidef.PubResp{
+			Code: apidef.RespCodeSuccess,
+			Msg:  "success",
+			Data: apidef.ApiPermResp{
+				SecToken:   secToken,
+				PermType:   permRespType,
+				TransferId: transferId,
+			},
+		}
+	} else if permRespType == apidef.PermReqRespAllowOnce {
+		onceToken := uuid.New().String()
+		transferId := uuid.New().String()
+
+		// 公钥加密
+		secToken, err := auth.EncryptRSAWithPubKeyStr(onceToken, reqBody.SenderPubKey)
+		if err != nil {
+			return apidef.PubResp{
+				Code: apidef.RespCodeParamError,
+				Msg:  "encrypt with rsa pub key error",
+			}
+		}
+
+		// 写一条记录进去数据库
+		transferMsg := storage.DbEzeShareTransferMsg{
+			TransferId:        transferId,
+			FileName:          reqBody.FileName,
+			FileSizeKb:        reqBody.FileSizeKb,
+			OnceToken:         onceToken,
+			TransferStatus:    storage.TransferStatusPreSend,
+			FromDeviceName:    reqBody.SenderName,
+			FromDeviceAddress: reqBody.SenderAddr,
+			RequestTime:       time.Now(),
+		}
+		storage.SavePreTransferMsg(transferMsg)
+
+		return apidef.PubResp{
+			Code: apidef.RespCodeSuccess,
+			Msg:  "success",
+			Data: apidef.ApiPermResp{
+				SecToken:   secToken,
+				TransferId: transferId,
+				PermType:   permRespType,
+			},
+		}
+
+	} else {
+		return apidef.PubResp{
+			Code: apidef.RespCodeParamError,
+			Msg:  "",
+			Data: apidef.ApiPermResp{
+				SecToken: "",
+				PermType: apidef.PermReqRespDisAllow,
+			},
+		}
+	}
 }
 
 func apiReceiver(ctx *gin.Context) {
 	// TODO 接口请求处理
+}
+
+func try(fun func(), handler func(interface{})) {
+	defer func() {
+		if err := recover(); err != nil {
+			handler(err)
+		}
+	}()
+	fun()
 }

@@ -31,7 +31,8 @@ func TestEncryptRSA(t *testing.T) {
 
 func TestTokenGen(t *testing.T) {
 	storage.InitDb(true)
-	TokenGen(false)
+	tokenSelf := GetTokenSelf()
+	log.I("token self: ", tokenSelf)
 }
 
 func TestGetRsaPublicKey(t *testing.T) {
@@ -39,8 +40,20 @@ func TestGetRsaPublicKey(t *testing.T) {
 }
 
 func TestWaitGroup(t *testing.T) {
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	wg.Add(-1)
-	wg.Add(-1)
+	a := func() {
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		wg.Add(-1)
+		wg.Add(-1)
+	}
+
+	defer func() {
+		fmt.Println("c")
+		if err := recover(); err != nil {
+			fmt.Println(err) // 这里的err其实就是panic传入的内容，55
+		}
+		fmt.Println("d")
+	}()
+
+	a()
 }

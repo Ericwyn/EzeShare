@@ -7,7 +7,7 @@ import (
 
 // transfer msg 表相关操作
 
-// SavePreTransferMsg 保存一条传输记录, 签发 Token
+// SavePreTransferMsg 保存一条传输记录, 签发 OnceToken
 func SavePreTransferMsg(transMsg DbEzeShareTransferMsg) {
 	// 设置一些初始数据
 	id, err := sqlEngine.InsertOne(transMsg)

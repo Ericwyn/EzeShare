@@ -2,17 +2,15 @@ package api
 
 import (
 	"crypto/rand"
+	"github.com/Ericwyn/EzeShare/api/apidef"
 	"github.com/gin-gonic/gin"
 	"math/big"
 )
 
-const ApiPathPermReq = "/api/premReq"
-const ApiPathFileTransfer = "/api/fileTransfer"
-
 // 设置 API 路由
 func initAPI(router *gin.Engine) {
-	router.POST(ApiPathPermReq, apiPermReq)
-	router.POST(ApiPathFileTransfer, apiReceiver)
+	router.POST(apidef.ApiPathPermReq, apiPermReq)
+	router.POST(apidef.ApiPathFileTransfer, apiReceiver)
 }
 
 // NewMux 返回全局路由, 包括静态资源

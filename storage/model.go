@@ -45,9 +45,10 @@ const TransferStatusFinish TransferStatus = 3  // 发送完毕
 // DbEzeShareTransferMsg 传输信息表，保存文件传输记录，别人请求传输文件的时候就会记录一条信息
 type DbEzeShareTransferMsg struct {
 	Id             int64
+	TransferId     string // 随机字符串，用来标记一次传输
 	FileName       string
 	FileSizeKb     int64
-	Token          string         // 传输这个文件的 token, 为空的话，代表的是自己签发的永久 Token
+	OnceToken      string         // 传输这个文件的 token, 为空的话，代表的是自己签发的永久 OnceToken
 	TransferStatus TransferStatus // 是否已经开始传输
 
 	FromDeviceName    string

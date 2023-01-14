@@ -100,7 +100,7 @@ func sendUdpBroadcast(scanTimes int, timeDuration time.Duration) {
 			return
 		}
 
-		log.D("send one msg broadcast")
+		//log.D("send one msg broadcast")
 		_, err := conn.Write([]byte(broadcastMsg))
 		if err != nil {
 			log.E(err.Error())

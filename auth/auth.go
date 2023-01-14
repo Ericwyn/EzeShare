@@ -15,26 +15,15 @@ import (
 
 const rsaKeyBits = 2048
 
-// TokenGen 生成认证 token
-func TokenGen(reGeneral bool) {
-	// 生成一个随机的 64 位字符串作为程序的 Token
+func GetTokenSelf() string {
+	exit, token := storage.GetSelfTokenFromDB()
+	if !exit {
+		token = uuid.New().String()
+		log.I("general new token self: " + token)
 
-	if !reGeneral {
-		if exits, _ := storage.GetTokenFromDB(); exits {
-			log.I("token already general")
-			return
-		}
+		storage.SaveSelfToken(token)
 	}
-
-	newToken := uuid.New().String()
-	log.I("general new token: " + newToken)
-
-	storage.SaveToken(newToken)
-}
-
-func GetToken() string {
-	_, s := storage.GetTokenFromDB()
-	return s
+	return token
 }
 
 func isRsaKeyExits() bool {
@@ -135,8 +124,13 @@ func EncryptRSA(str string, path string) (base64EncryptStr string, err error) {
 	fileInfo, _ := f.Stat()
 	b := make([]byte, fileInfo.Size())
 	f.Read(b)
+	//log.I("pub key : ", string(b))
+	return EncryptRSAWithPubKeyStr(str, string(b))
+}
+
+func EncryptRSAWithPubKeyStr(str string, keyStr string) (base64EncryptStr string, err error) {
 	// 2、将得到的字符串解码
-	block, _ := pem.Decode(b)
+	block, _ := pem.Decode([]byte(keyStr))
 
 	// 使用X509将解码之后的数据 解析出来
 	//x509.MarshalPKCS1PublicKey(block):解析之后无法用，所以采用以下方法：ParsePKIXPublicKey
@@ -151,6 +145,7 @@ func EncryptRSA(str string, path string) (base64EncryptStr string, err error) {
 
 	base64Str := base64.StdEncoding.EncodeToString(res)
 	return base64Str, err
+
 }
 
 // DecryptRSA 对数据进行解密操作
