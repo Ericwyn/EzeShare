@@ -9,6 +9,18 @@ import (
 var maxLogBuffSize = 10
 var logBuff []string = make([]string, 0)
 
+type LogPrintSet struct {
+	PrintI bool
+	PrintD bool
+	PrintE bool
+}
+
+var logSet = LogPrintSet{PrintE: true, PrintI: true, PrintD: true}
+
+func SetPrint(set LogPrintSet) {
+	logSet = set
+}
+
 func getLogTimeStr() string {
 	return date.Format(time.Now(), "MM-dd HH:mm:ss")
 }
@@ -21,7 +33,9 @@ func E(out ...interface{}) {
 		logBuff = logBuff[len(logBuff)-maxLogBuffSize : len(logBuff)-1]
 	}
 
-	fmt.Println(log)
+	if logSet.PrintE {
+		fmt.Println(log)
+	}
 }
 
 func D(out ...interface{}) {
@@ -32,7 +46,9 @@ func D(out ...interface{}) {
 		logBuff = logBuff[len(logBuff)-maxLogBuffSize : len(logBuff)-1]
 	}
 
-	fmt.Println(log)
+	if logSet.PrintD {
+		fmt.Println(log)
+	}
 }
 
 func I(out ...interface{}) {
@@ -43,7 +59,9 @@ func I(out ...interface{}) {
 		logBuff = logBuff[len(logBuff)-maxLogBuffSize : len(logBuff)-1]
 	}
 
-	fmt.Println(log)
+	if logSet.PrintI {
+		fmt.Println(log)
+	}
 }
 
 // 获取前 1000 行 log

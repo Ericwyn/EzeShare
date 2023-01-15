@@ -1,43 +1,45 @@
-package main
+package terminalui
 
 import (
-	"flag"
 	"fmt"
-	"github.com/Ericwyn/EzeShare/api"
 	"github.com/Ericwyn/EzeShare/log"
-	"github.com/Ericwyn/EzeShare/scan/udpscan"
 	"github.com/Ericwyn/EzeShare/storage"
+	"github.com/Ericwyn/EzeShare/ui"
 	"github.com/Ericwyn/EzeShare/utils/netutils"
 	"net"
 	"os"
 	"strconv"
 	"strings"
-	"time"
 )
 
-var ip = flag.String("ip", "", "set ip address")
+func runTerminalMainUi(args ui.MainUiArgs) {
+	printLogo(args.RunMode)
 
-func main() {
-	flag.Parse()
-	storage.InitDb(true)
-
-	if *ip != "" {
-		netutils.SetIPv4(*ip)
+	if args.IpAddr != "" {
+		netutils.SetIPv4(args.IpAddr)
 	} else {
-		SelectIPv4()
+		getOrSelectIPv4Addr()
 	}
 
-	// 开始向其他机器广播自己消息
-	scanType := udpscan.UdpScanType
-
-	// 协程执行广播, 每 2s 播发一次自己的位置
-	scanType.StartBroadCastAsync(999, 2*time.Second)
-
-	// 开启一个认证和文件接收的 api 服务器
-	api.StartReceiverHttpServer()
+	if args.RunMode == ui.MainUiRunModeSender {
+		runSender(args)
+	} else if args.RunMode == ui.MainUiRunModeReceiver {
+		runReceiver(args)
+	}
 }
 
-func SelectIPv4() {
+func printLogo(mode ui.MainUiRunMode) {
+	fmt.Println(
+		"  _____         ____  _                    \n" +
+			" | ____|_______/ ___|| |__   __ _ _ __ ___ \n" +
+			" |  _| |_  / _ \\___ \\| '_ \\ / _` | '__/ _ \\\n" +
+			" | |___ / /  __/___) | | | | (_| | | |  __/\n" +
+			" |_____/___\\___|____/|_| |_|\\__,_|_|  \\___|\n" +
+			"                                           \n" +
+			"          run in mode: " + mode + "\n")
+}
+
+func getOrSelectIPv4Addr() {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		log.E(err)
@@ -58,7 +60,7 @@ func SelectIPv4() {
 		os.Exit(-1)
 	}
 	if len(ipList) == 1 {
-		log.I("select ip : ", ipList[0].String())
+		fmt.Println("当前设备 IP 为 ", ipList[0].String())
 		netutils.SetIPv4(ipList[0].String())
 		return
 	}
@@ -67,7 +69,7 @@ func SelectIPv4() {
 	addr := storage.GetSelfIpAddr()
 	for _, ip := range ipList {
 		if addr == ip.String() {
-			log.I("select ip : ", addr)
+			log.I("使用历史 IP 设置 : ", addr)
 			netutils.SetIPv4(addr)
 			return
 		}
@@ -100,7 +102,7 @@ func SelectIPv4() {
 		os.Exit(-1)
 	}
 	ipSelect = ipList[selectIndex]
-	log.I("选择 ip 为", ipSelect.To4().String(), ", 记住 ip: ", rememberIpFlag)
+	fmt.Println("选择 ip 为", ipSelect.To4().String(), ", 记住 ip: ", rememberIpFlag)
 	if rememberIpFlag {
 		storage.SaveSelfIpAddr(ipSelect.To4().String())
 	}

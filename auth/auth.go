@@ -29,7 +29,7 @@ func GetSelfToken() string {
 	if !exit {
 		token := uuid.New().String()
 		deviceId := uuid.New().String()[0:8]
-		log.I("general new token self: " + token)
+		log.D("general new token self: " + token)
 
 		storage.SaveSelfToken(token, deviceId)
 		selfPerm.Token = token
@@ -51,7 +51,7 @@ func isRsaKeyExits() bool {
 	privateKeyFile := file.OpenFile(GetRsaPrivateKeyPath())
 	publicKeyFile := file.OpenFile(GetRsaPublicKeyPath())
 	if privateKeyFile.Exits() || publicKeyFile.Exits() {
-		log.I("rsa key already")
+		log.D("rsa key already exits")
 		return true
 	}
 	return false
@@ -60,7 +60,7 @@ func isRsaKeyExits() bool {
 func RSAGenKey(reGen bool) error {
 	// 判断是否已经存在文件，如果存在的话就不生成
 	if !reGen && isRsaKeyExits() {
-		log.I("RSA KEY is exits, path: " + storage.GetConfigDirPath())
+		log.D("RSA KEY is exits, path: " + storage.GetConfigDirPath())
 		return nil
 	}
 
@@ -199,7 +199,7 @@ func DecryptRSA(base64EncryptStr, path string) (decryptStr string, err error) {
 // token: 解密后的 token, 可以是 OnceToken 也可以是 Self token
 // 通过 md5(token + fileName + timeStamp) 得到一个密文
 func FileTransferSign(token string, fileName string, timeStampSec int64) string {
-	log.I("cal sign, token : ", token, ", fileName: ", fileName, ", timeStamp: ", timeStampSec)
+	log.D("cal sign, token : ", token, ", fileName: ", fileName, ", timeStamp: ", timeStampSec)
 	sum := md5.Sum([]byte(token + fileName + strconv.Itoa(int(timeStampSec))))
 	return fmt.Sprintf("%x\n", sum)
 }

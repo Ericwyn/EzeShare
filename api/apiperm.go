@@ -5,7 +5,6 @@ import (
 	"github.com/Ericwyn/EzeShare/auth"
 	"github.com/Ericwyn/EzeShare/log"
 	"github.com/Ericwyn/EzeShare/storage"
-	"github.com/Ericwyn/EzeShare/ui"
 	"github.com/Ericwyn/EzeShare/utils/errutils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -13,7 +12,13 @@ import (
 	"time"
 )
 
-var waitGroupMap = make(map[string]sync.WaitGroup)
+type PermReqCallback func(apidef.ApiPermReq) apidef.PermReqRespType
+
+var permReqCallback PermReqCallback
+
+func SetPermReqCallback(cb PermReqCallback) {
+	permReqCallback = cb
+}
 
 func apiPermReq(ctx *gin.Context) {
 	var reqBody apidef.ApiPermReq
@@ -58,7 +63,10 @@ func apiPermReq(ctx *gin.Context) {
 		})
 	}()
 
-	ui.TerminalUi.ShowPermReqUiAsync(reqBody, func(permType apidef.PermReqRespType) {
+	go func() {
+		// 等待 ui 选择结果，此处阻塞
+		permType := permReqCallback(reqBody)
+
 		errutils.Try(func() {
 			if !wgDone {
 				wg.Done()
@@ -68,14 +76,14 @@ func apiPermReq(ctx *gin.Context) {
 			log.I("wait group done panic, ", i)
 		})
 		permRespTypeFromUI = permType
-	})
+	}()
 
 	// 开始阻塞等待回调
-	log.I("start wait for perm req ui callback")
+	log.D("start wait for perm req ui callback")
 	wg.Wait()
 
 	// 阻塞结束进行处理
-	log.I("perm req callback wait done, result: ", permRespTypeFromUI)
+	log.D("perm req callback wait done, result: ", permRespTypeFromUI)
 
 	ctx.JSON(200, generalPermResp(reqBody, permRespTypeFromUI))
 }

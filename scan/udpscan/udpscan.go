@@ -151,7 +151,7 @@ func startUdpScan(callback scan.ScanCallback) {
 
 	for {
 		if !isUdpScanIng {
-			log.I("stop broadcast scan")
+			log.D("stop broadcast scan")
 			break
 		}
 

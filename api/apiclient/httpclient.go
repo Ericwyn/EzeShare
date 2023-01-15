@@ -3,7 +3,6 @@ package apiclient
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/Ericwyn/EzeShare/api/apidef"
 	"github.com/Ericwyn/EzeShare/auth"
 	"github.com/Ericwyn/EzeShare/log"
@@ -20,7 +19,7 @@ import (
 // apiclient 给 sender 请求 receiver 的 api 接口的工具
 
 // DoPermRequest 发起一个文件发送请求
-func DoPermRequest(ipAddr string, file file.File, permType apidef.PermType) {
+func DoPermRequest(ipAddr string, file file.File, permType apidef.PermType, uploadPercentCb func(per int)) {
 	url := "http://" + ipAddr + ":" + strconv.Itoa(apidef.HttpApiServerPort) +
 		apidef.ApiPathPermReq
 
@@ -34,13 +33,13 @@ func DoPermRequest(ipAddr string, file file.File, permType apidef.PermType) {
 
 	reqJson := toJson(reqStruct)
 
-	log.I("request file transfer perm to ", url)
-	log.I("request body : ", reqJson)
+	log.D("request file transfer perm to ", url)
+	log.D("request body : ", reqJson)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte(reqJson)))
 	if err != nil {
-		log.I("new http req error")
-		log.I(err)
+		log.E("new http req error")
+		log.E(err)
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -62,7 +61,7 @@ func DoPermRequest(ipAddr string, file file.File, permType apidef.PermType) {
 	var apiResp apidef.PubResp
 	err = json.Unmarshal(respBody, &apiResp)
 	if err != nil {
-		log.I("parse respBody error: ", string(respBody))
+		log.E("parse respBody error: ", string(respBody))
 		return
 	}
 	if apiResp.Code != apidef.RespCodeSuccess {
@@ -74,7 +73,7 @@ func DoPermRequest(ipAddr string, file file.File, permType apidef.PermType) {
 	secTokenResp := data["SecToken"].(string)
 	permTypeResp := data["PermType"].(string)
 	transferIdResp := data["TransferId"].(string)
-	log.I("perm resp, secToken: ", secTokenResp,
+	log.D("perm resp, secToken: ", secTokenResp,
 		", permType: ", permTypeResp,
 		", transferId: ", transferIdResp)
 
@@ -82,14 +81,18 @@ func DoPermRequest(ipAddr string, file file.File, permType apidef.PermType) {
 	if err != nil {
 		return
 	}
-	log.I("decrypt token: ", decryptToken)
-	DoFileTransfer(ipAddr, decryptToken, transferIdResp, file)
+	log.D("decrypt token: ", decryptToken)
+	DoFileTransfer(ipAddr, decryptToken, transferIdResp, file, uploadPercentCb)
 }
 
 type UploadFile struct {
-	io.Reader       // 读取器
-	Total     int64 // 总大小
-	Current   int64 // 当前大小
+	io.Reader                        // 读取器
+	FileName           string        // 文件名字
+	Total              int64         // 总大小
+	Current            int64         // 当前大小
+	TransferPercentNow int           // 传输百分比
+	TransferPercentCb  func(per int) // 传输百分比的回调
+	TransferFinishCb   func()        // 传输完成的回调
 }
 
 // 实现io.Reader接口的Read方法
@@ -99,17 +102,25 @@ func (f *UploadFile) Read(p []byte) (n int, err error) {
 	f.Current += int64(n)
 	// 这里可以打印下载进度
 	percent := float64(f.Current*10000/f.Total) / 100
-	if int(percent)%5 == 0 && (percent-float64(int(percent)) == 0) {
-		log.I("file uploading: ", percent)
+	if int(percent) > f.TransferPercentNow {
+		f.TransferPercentNow = int(percent)
+		f.TransferPercentCb(f.TransferPercentNow)
 	}
 	if f.Current == f.Total {
-		//log.I("\rfile upload finish !!!!：%.2f%%", float64(f.Current*10000/f.Total)/100)
-		log.I("file upload finish!!!!!!")
+		log.D("file upload finish!!!!!!")
+		if f.TransferFinishCb != nil {
+			f.TransferFinishCb()
+		}
 	}
 	return
 }
 
-func DoFileTransfer(ipAddr string, decryptToken string, transferId string, file file.File) {
+func DoFileTransfer(ipAddr string,
+	decryptToken string,
+	transferId string,
+	file file.File,
+	uploadPercentCb func(per int),
+) {
 	url := "http://" + ipAddr + ":" + strconv.Itoa(apidef.HttpApiServerPort) +
 		apidef.ApiPathFileTransfer
 
@@ -128,8 +139,9 @@ func DoFileTransfer(ipAddr string, decryptToken string, transferId string, file 
 	}
 
 	uploadFile := &UploadFile{
-		Reader: openFile,
-		Total:  file.Size(),
+		Reader:            openFile,
+		Total:             file.Size(),
+		TransferPercentCb: uploadPercentCb,
 	}
 
 	_, err = io.Copy(part, uploadFile)
@@ -159,9 +171,9 @@ func DoFileTransfer(ipAddr string, decryptToken string, transferId string, file 
 			log.E(err)
 		}
 		resp.Body.Close()
-		fmt.Println(resp.StatusCode)
-		fmt.Println(resp.Header)
-		fmt.Println(body)
+		log.D(resp.StatusCode)
+		log.D(resp.Header)
+		log.D(body)
 	}
 }
 
