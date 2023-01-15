@@ -12,6 +12,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 )
@@ -90,9 +91,9 @@ func DoFileTransfer(ipAddr string, decryptToken string, transferId string, file 
 		apidef.ApiPathFileTransfer
 
 	unixTimeStamp := time.Now().Unix()
-	openFile, err := file.Open()
+
+	openFile, err := os.Open(file.AbsPath())
 	if err != nil {
-		log.E("file open error, name : ", openFile.Name())
 		return
 	}
 

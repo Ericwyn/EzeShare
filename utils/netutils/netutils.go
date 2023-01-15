@@ -4,9 +4,31 @@ import (
 	"github.com/Ericwyn/EzeShare/log"
 	"net"
 	"os"
+	"strings"
 )
 
+var ipAddrCache net.IP = nil
+
+func SetIPv4(ipAddress string) {
+	if !strings.HasSuffix(ipAddress, "/24") ||
+		!strings.HasSuffix(ipAddress, "/64") {
+		ipAddress = ipAddress + "/24"
+	}
+	ip, _, err := net.ParseCIDR(ipAddress)
+	if err != nil {
+		log.E("Set IP Error ", ipAddress)
+		log.E(err)
+		panic(err)
+	}
+
+	ipAddrCache = ip
+}
+
 func GetIPv4() net.IP {
+	if ipAddrCache != nil {
+		return ipAddrCache
+	}
+
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		log.E(err)

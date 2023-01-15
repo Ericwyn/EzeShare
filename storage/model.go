@@ -6,7 +6,7 @@ import "time"
 
 type ConfigKey string
 
-const ConfigKeyToken ConfigKey = "ConfigKeyToken"
+const ConfigKeySelfIp ConfigKey = "ConfigKeySelfIp"
 
 // DbEzeShareConfig 数据配置表
 type DbEzeShareConfig struct {
