@@ -109,8 +109,8 @@ func printAllReceivers(receiver []scan.BroadcastMsg) {
 	for i, msg := range receiver {
 		fmt.Println("\n\n\n\n\n\n\n\n\n")
 		fmt.Println("当前 receiver 列表如下: ")
-		fmt.Println("\taddress       \t", "name")
-		fmt.Println("["+strconv.Itoa(i)+"]\t", msg.Address, "\t", msg.Name)
+		fmt.Println("\t address", "\t\t", "name\t\t\t", "deviceId")
+		fmt.Println("["+strconv.Itoa(i)+"]\t", msg.Address, "\t", msg.Name, "\t", msg.DeviceId)
 		fmt.Println("-----------------------")
 		fmt.Println("输入编号并回车, 选择具体 receiver")
 	}

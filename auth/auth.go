@@ -18,21 +18,33 @@ import (
 
 const rsaKeyBits = 2048
 
-var tokenSelfCache = ""
+var SelfTokenCache = ""
+var selfDeviceIdCache = ""
 
-func GetTokenSelf() string {
-	if tokenSelfCache != "" {
-		return tokenSelfCache
+func GetSelfToken() string {
+	if SelfTokenCache != "" {
+		return SelfTokenCache
 	}
-	exit, token := storage.GetSelfTokenFromDB()
+	exit, selfPerm := storage.GetSelfPermFromDB()
 	if !exit {
-		token = uuid.New().String()
+		token := uuid.New().String()
+		deviceId := uuid.New().String()[0:8]
 		log.I("general new token self: " + token)
 
-		storage.SaveSelfToken(token)
+		storage.SaveSelfToken(token, deviceId)
+		selfPerm.Token = token
+		selfPerm.DeviceID = deviceId
 	}
-	tokenSelfCache = token
-	return tokenSelfCache
+	selfDeviceIdCache = selfPerm.DeviceID
+	SelfTokenCache = selfPerm.Token
+	return SelfTokenCache
+}
+
+func GetSelfDeviceId() string {
+	if selfDeviceIdCache == "" {
+		GetSelfToken()
+	}
+	return selfDeviceIdCache
 }
 
 func isRsaKeyExits() bool {

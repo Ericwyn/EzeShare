@@ -2,6 +2,7 @@ package udpscan
 
 import (
 	"encoding/json"
+	"github.com/Ericwyn/EzeShare/auth"
 	"github.com/Ericwyn/EzeShare/log"
 	"github.com/Ericwyn/EzeShare/scan"
 	"github.com/Ericwyn/EzeShare/utils/netutils"
@@ -33,8 +34,9 @@ var UdpScanType = scan.ScanType{
 
 func generalMsg() string {
 	msg := scan.BroadcastMsg{
-		Name:    netutils.GetDeviceName(),
-		Address: netutils.GetIPv4().String(),
+		Name:     netutils.GetDeviceName(),
+		Address:  netutils.GetIPv4().String(),
+		DeviceId: auth.GetSelfDeviceId(),
 	}
 
 	marshal, err := json.Marshal(msg)

@@ -5,10 +5,11 @@ import "github.com/Ericwyn/EzeShare/log"
 // perm 表相关操作
 
 // SaveSelfToken 保存 OnceToken
-func SaveSelfToken(token string) {
+func SaveSelfToken(token string, deviceId string) {
 	tokenSelf := DbEzeSharePerm{
 		DeviceName: "Self",
 		DeviceType: "Self",
+		DeviceID:   deviceId,
 		Token:      token,
 		PermType:   PermTypeAlways,
 		TokenType:  TokenTypeFromSelf,
@@ -21,15 +22,16 @@ func SaveSelfToken(token string) {
 	}
 }
 
-// GetSelfTokenFromDB 获取 token，存在的话为 bool, string
-func GetSelfTokenFromDB() (bool, string) {
-	var tokenSelf DbEzeSharePerm
+// GetSelfPermFromDB 获取 token，存在的话为 bool, string
+func GetSelfPermFromDB() (bool, DbEzeSharePerm) {
+	var selfPerm DbEzeSharePerm
 	exits, err := sqlEngine.
 		Where("perm_type = ? and token_type = ?", PermTypeAlways, TokenTypeFromSelf).
-		Get(&tokenSelf)
+		Get(&selfPerm)
 	if err != nil {
 		log.E("get token error")
 		panic(err)
 	}
-	return exits, tokenSelf.Token
+
+	return exits, selfPerm
 }

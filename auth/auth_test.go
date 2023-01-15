@@ -31,7 +31,7 @@ func TestEncryptRSA(t *testing.T) {
 
 func TestTokenGen(t *testing.T) {
 	storage.InitDb(true)
-	tokenSelf := GetTokenSelf()
+	tokenSelf := GetSelfToken()
 	log.I("token self: ", tokenSelf)
 }
 

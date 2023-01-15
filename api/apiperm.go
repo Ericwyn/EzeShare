@@ -83,7 +83,7 @@ func apiPermReq(ctx *gin.Context) {
 func generalPermResp(reqBody apidef.ApiPermReq, permRespType apidef.PermReqRespType) any {
 	if permRespType == apidef.PermReqRespAllowAlways {
 		// 拿到自己的 token
-		alwaysToken := auth.GetTokenSelf()
+		alwaysToken := auth.GetSelfToken()
 		// 公钥加密
 		secToken, err := auth.EncryptRSAWithPubKeyStr(alwaysToken, reqBody.SenderPubKey)
 		if err != nil {

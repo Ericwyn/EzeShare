@@ -37,7 +37,7 @@ func apiReceiver(ctx *gin.Context) {
 	transferMsg := storage.GetTransferMsgFromDB(transferId)
 	token := transferMsg.OnceToken
 	if token == "" {
-		token = auth.GetTokenSelf()
+		token = auth.GetSelfToken()
 	}
 	signCheck := auth.FileTransferSign(token, transferMsg.FileName, timeStampSec)
 	if signCheck != sign {

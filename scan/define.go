@@ -5,8 +5,9 @@ import "time"
 type ScanTypeName string
 
 type BroadcastMsg struct {
-	Name    string
-	Address string
+	Name     string
+	Address  string
+	DeviceId string
 }
 
 type ScanCallback func(bool, []BroadcastMsg)
