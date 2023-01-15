@@ -1,11 +1,40 @@
 package api
 
 import (
+	"context"
 	"crypto/rand"
 	"github.com/Ericwyn/EzeShare/api/apidef"
 	"github.com/gin-gonic/gin"
 	"math/big"
+	"net/http"
+	"time"
 )
+
+// timeout middleware wraps the request context with a timeout
+func timeoutMiddleware(timeout time.Duration) func(c *gin.Context) {
+	return func(c *gin.Context) {
+
+		// wrap the request context with a timeout
+		ctx, cancel := context.WithTimeout(c.Request.Context(), timeout)
+
+		defer func() {
+			// check if context timeout was reached
+			if ctx.Err() == context.DeadlineExceeded {
+
+				// write response and abort the request
+				c.Writer.WriteHeader(http.StatusGatewayTimeout)
+				c.Abort()
+			}
+
+			//cancel to clear resources after finished
+			cancel()
+		}()
+
+		// replace request with context wrapped request
+		c.Request = c.Request.WithContext(ctx)
+		c.Next()
+	}
+}
 
 // 设置 API 路由
 func initAPI(router *gin.Engine) {
@@ -17,7 +46,8 @@ func initAPI(router *gin.Engine) {
 func NewMux() *gin.Engine {
 	router := gin.Default()
 
-	router.Use(gin.Logger())
+	// 超长超时时间
+	router.Use(gin.Logger(), timeoutMiddleware(time.Minute*30))
 	initAPI(router)
 	return router
 }
