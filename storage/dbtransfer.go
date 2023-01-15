@@ -10,12 +10,12 @@ import (
 // SavePreTransferMsg 保存一条传输记录, 签发 OnceToken
 func SavePreTransferMsg(transMsg DbEzeShareTransferMsg) {
 	// 设置一些初始数据
-	id, err := sqlEngine.InsertOne(transMsg)
+	_, err := sqlEngine.InsertOne(transMsg)
 	if err != nil {
 		log.E("save pre transfer msg error")
 		return
 	}
-	log.I("save transfer msg success, id: ", id)
+	log.D("save transfer msg success, id: ", transMsg.Id)
 }
 
 // SaveTransferStatus 更改传输的状态

@@ -75,6 +75,8 @@ func DoPermRequest(receiverMsg scan.BroadcastMsg, file file.File, permType apide
 		log.E("perm req error, ", string(respBody))
 		return
 	}
+	log.D("perm resp : ", string(respBody))
+
 	data := apiResp.Data.(map[string]interface{})
 
 	secTokenResp := data["SecToken"].(string)
@@ -166,13 +168,19 @@ func DoFileTransfer(ipAddr string,
 
 	_, err = io.Copy(part, uploadFile)
 
-	_ = writer.WriteField("sign", auth.FileTransferSign(decryptToken, file.Name(), unixTimeStamp))
-	_ = writer.WriteField("transferId", transferId)
-	_ = writer.WriteField("fileName", file.Name())
-	_ = writer.WriteField("senderName", deviceutils.GetDeviceName())
-	_ = writer.WriteField("fileSizeBits", strconv.FormatInt(file.Size(), 10))
-	_ = writer.WriteField("permTypeReq", string(permTypeReq))
-	_ = writer.WriteField("timeStamp", strconv.Itoa(int(unixTimeStamp)))
+	otherParamMap := map[string]string{
+		"sign":         auth.FileTransferSign(decryptToken, file.Name(), unixTimeStamp),
+		"transferId":   transferId,
+		"fileName":     file.Name(),
+		"senderName":   deviceutils.GetDeviceName(),
+		"fileSizeBits": strconv.FormatInt(file.Size(), 10),
+		"permType":     string(permTypeReq),
+		"timeStamp":    strconv.Itoa(int(unixTimeStamp)),
+	}
+	log.D("do file transfer req, params : ", otherParamMap)
+	for k, v := range otherParamMap {
+		_ = writer.WriteField(k, v)
+	}
 
 	err = writer.Close()
 	if err != nil {
