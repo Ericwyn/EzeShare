@@ -55,9 +55,10 @@ func (apiPermReq *ApiPermReq) CheckReq() string {
 }
 
 type ApiPermResp struct {
-	SecToken   string          // receiver 使用发送者公钥加密后的 token, sender 使用这个 token 来计算 sign
-	PermType   PermReqRespType // 权限类型
-	TransferId string          // 文件传输的 id, 一个随机 id，sender 发送文件的时候也需要回传
+	SecToken         string          // receiver 使用发送者公钥加密后的 token, sender 使用这个 token 来计算 sign
+	PermType         PermReqRespType // 权限类型
+	TransferId       string          // 文件传输的 id, 一个随机 id，sender 发送文件的时候也需要回传
+	ReceiverDeviceId string          // 接收者的 deviceId, 方便 sender 保存信息
 	//ReceiverPubKey string   // 接收者公钥
 }
 

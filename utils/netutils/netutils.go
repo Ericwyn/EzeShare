@@ -3,7 +3,6 @@ package netutils
 import (
 	"github.com/Ericwyn/EzeShare/log"
 	"net"
-	"os"
 	"strings"
 )
 
@@ -44,14 +43,4 @@ func GetIPv4() net.IP {
 		}
 	}
 	return net.IPv4(0, 0, 0, 0)
-}
-
-// GetDeviceName 获取计算机名称
-func GetDeviceName() string {
-	hostname, err := os.Hostname()
-	if err != nil {
-		return "unknown-device"
-	}
-
-	return hostname
 }

@@ -30,7 +30,7 @@ const TokenTypeFromOther TokenType = "Other" // 别人签发给自己的
 type DbEzeSharePerm struct {
 	Id         int64
 	DeviceName string     // 设备名称
-	DeviceID   string     // 设备 ID
+	DeviceId   string     // 设备 ID
 	DeviceType DeviceType // 设备类型, 类似于 Windows/Mac/Android 之类的字符串
 	Token      string     // 连接 token, 已解密的 token
 	PermType   PermType   // 权限类型，Once 代表是一次性权限，Always 是永久权限

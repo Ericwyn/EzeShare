@@ -6,7 +6,9 @@ import (
 	"github.com/Ericwyn/EzeShare/api/apidef"
 	"github.com/Ericwyn/EzeShare/auth"
 	"github.com/Ericwyn/EzeShare/log"
-	"github.com/Ericwyn/EzeShare/utils/netutils"
+	"github.com/Ericwyn/EzeShare/scan"
+	"github.com/Ericwyn/EzeShare/utils"
+	"github.com/Ericwyn/EzeShare/utils/deviceutils"
 	"github.com/Ericwyn/GoTools/file"
 	"io"
 	"mime/multipart"
@@ -19,15 +21,21 @@ import (
 // apiclient 给 sender 请求 receiver 的 api 接口的工具
 
 // DoPermRequest 发起一个文件发送请求
-func DoPermRequest(ipAddr string, file file.File, permType apidef.PermType, uploadPercentCb func(per int)) {
-	url := "http://" + ipAddr + ":" + strconv.Itoa(apidef.HttpApiServerPort) +
+func DoPermRequest(receiverMsg scan.BroadcastMsg, file file.File, permType apidef.PermType, uploadPercentCb func(per int)) {
+	alwaysToken := auth.CheckReceiverAlwaysToken(receiverMsg.DeviceId)
+	if alwaysToken != "" {
+		DoFileTransfer(receiverMsg.Address, alwaysToken, "", file, uploadPercentCb)
+		return
+	}
+
+	url := "http://" + receiverMsg.Address + ":" + strconv.Itoa(apidef.HttpApiServerPort) +
 		apidef.ApiPathPermReq
 
 	reqStruct := apidef.ApiPermReq{
 		PermType:     permType,
 		FileName:     file.Name(),
 		FileSizeBits: file.Size(),
-		SenderName:   netutils.GetDeviceName(),
+		SenderName:   deviceutils.GetDeviceName(),
 		SenderPubKey: auth.GetRsaPublicKey(),
 	}
 
@@ -73,6 +81,7 @@ func DoPermRequest(ipAddr string, file file.File, permType apidef.PermType, uplo
 	secTokenResp := data["SecToken"].(string)
 	permTypeResp := data["PermType"].(string)
 	transferIdResp := data["TransferId"].(string)
+	receiverDeviceId := data["ReceiverDeviceId"].(string)
 	log.D("perm resp, secToken: ", secTokenResp,
 		", permType: ", permTypeResp,
 		", transferId: ", transferIdResp)
@@ -82,7 +91,12 @@ func DoPermRequest(ipAddr string, file file.File, permType apidef.PermType, uplo
 		return
 	}
 	log.D("decrypt token: ", decryptToken)
-	DoFileTransfer(ipAddr, decryptToken, transferIdResp, file, uploadPercentCb)
+	if permTypeResp == string(apidef.PermReqRespAllowAlways) {
+		auth.SaveReceiverAlwaysToken(receiverDeviceId, decryptToken, receiverMsg.Name, receiverMsg.DeviceType)
+		// 保存 token 进去
+	}
+
+	DoFileTransfer(receiverMsg.Address, decryptToken, transferIdResp, file, uploadPercentCb)
 }
 
 type UploadFile struct {
@@ -148,6 +162,9 @@ func DoFileTransfer(ipAddr string,
 
 	_ = writer.WriteField("sign", auth.FileTransferSign(decryptToken, file.Name(), unixTimeStamp))
 	_ = writer.WriteField("transferId", transferId)
+	_ = writer.WriteField("fileName", file.Name())
+	_ = writer.WriteField("permType",
+		string(utils.Check(transferId == "", apidef.PermTypeAlways, apidef.PermTypeOnce).(apidef.PermType)))
 	_ = writer.WriteField("timeStamp", strconv.Itoa(int(unixTimeStamp)))
 
 	err = writer.Close()

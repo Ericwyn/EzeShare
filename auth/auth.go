@@ -33,11 +33,26 @@ func GetSelfToken() string {
 
 		storage.SaveSelfToken(token, deviceId)
 		selfPerm.Token = token
-		selfPerm.DeviceID = deviceId
+		selfPerm.DeviceId = deviceId
 	}
-	selfDeviceIdCache = selfPerm.DeviceID
+	selfDeviceIdCache = selfPerm.DeviceId
 	SelfTokenCache = selfPerm.Token
 	return SelfTokenCache
+}
+
+// SaveReceiverAlwaysToken 将接收方签发的 always token 保存起来
+// 下次遇到这个 deviceId 可以直接发送
+func SaveReceiverAlwaysToken(deviceId string, token string, deviceName string, deviceType string) {
+	storage.SaveOtherPerm(token, deviceId, deviceName, storage.DeviceType(deviceType))
+}
+
+func CheckReceiverAlwaysToken(deviceId string) string {
+	exit, otherPerm := storage.GetOtherPerm(deviceId)
+	if exit {
+		return otherPerm.Token
+	} else {
+		return ""
+	}
 }
 
 func GetSelfDeviceId() string {

@@ -54,7 +54,7 @@ func runSender(args ui.MainUiArgs) {
 
 	fileForUpload := file.OpenFile(args.SenderFile)
 
-	apiclient.DoPermRequest(msg.Address,
+	apiclient.DoPermRequest(msg,
 		fileForUpload,
 		apidef.PermTypeAlways,
 		func(per int) {
@@ -66,9 +66,12 @@ func runSender(args ui.MainUiArgs) {
 func printAllReceivers(receiver []scan.BroadcastMsg) {
 	fmt.Println("\n\n\n\n\n\n\n\n\n")
 	fmt.Println("当前 receiver 列表如下: ")
-	fmt.Println("\t address", "\t\t", "name\t\t\t", "deviceId")
+	fmt.Println("\t address", "\t\t", "name\t\t\t", "deviceId", "\t\t", "deviceType")
 	for i, msg := range receiver {
-		fmt.Println("["+strconv.Itoa(i)+"]\t", msg.Address, "\t", msg.Name, "\t", msg.DeviceId)
+		fmt.Println("["+strconv.Itoa(i)+"]\t", msg.Address, "\t",
+			msg.Name, "\t",
+			msg.DeviceId, "\t",
+			msg.DeviceType)
 	}
 	fmt.Println("-----------------------")
 	fmt.Println("输入编号并回车, 选择具体 receiver")

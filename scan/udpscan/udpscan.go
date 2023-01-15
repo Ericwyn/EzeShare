@@ -5,6 +5,7 @@ import (
 	"github.com/Ericwyn/EzeShare/auth"
 	"github.com/Ericwyn/EzeShare/log"
 	"github.com/Ericwyn/EzeShare/scan"
+	"github.com/Ericwyn/EzeShare/utils/deviceutils"
 	"github.com/Ericwyn/EzeShare/utils/netutils"
 	"net"
 	"strconv"
@@ -34,9 +35,10 @@ var UdpScanType = scan.ScanType{
 
 func generalMsg() string {
 	msg := scan.BroadcastMsg{
-		Name:     netutils.GetDeviceName(),
-		Address:  netutils.GetIPv4().String(),
-		DeviceId: auth.GetSelfDeviceId(),
+		Name:       deviceutils.GetDeviceName(),
+		Address:    netutils.GetIPv4().String(),
+		DeviceId:   auth.GetSelfDeviceId(),
+		DeviceType: deviceutils.GetDeviceType(),
 	}
 
 	marshal, err := json.Marshal(msg)

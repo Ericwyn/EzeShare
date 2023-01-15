@@ -9,7 +9,7 @@ func SaveSelfToken(token string, deviceId string) {
 	tokenSelf := DbEzeSharePerm{
 		DeviceName: "Self",
 		DeviceType: "Self",
-		DeviceID:   deviceId,
+		DeviceId:   deviceId,
 		Token:      token,
 		PermType:   PermTypeAlways,
 		TokenType:  TokenTypeFromSelf,
@@ -34,4 +34,38 @@ func GetSelfPermFromDB() (bool, DbEzeSharePerm) {
 	}
 
 	return exits, selfPerm
+}
+
+func SaveOtherPerm(token string, deviceId string, deviceName string, deviceType DeviceType) {
+	perm := DbEzeSharePerm{
+		DeviceName: deviceName,
+		DeviceType: deviceType,
+		DeviceId:   deviceId,
+		Token:      token,
+		PermType:   PermTypeAlways,
+		TokenType:  TokenTypeFromOther,
+	}
+	exit, otherPermExits := GetOtherPerm(deviceId)
+	if exit {
+		perm.Id = otherPermExits.Id
+		sqlEngine.ID(perm.Id).
+			Cols("device_name", "device_type", "token").
+			Update(&otherPermExits)
+		// 更新
+	} else {
+		sqlEngine.InsertOne(&perm)
+	}
+}
+
+func GetOtherPerm(deviceId string) (bool, DbEzeSharePerm) {
+	var otherPerm DbEzeSharePerm
+	exits, err := sqlEngine.
+		Where("device_id = ?", deviceId).
+		Get(&otherPerm)
+	if err != nil {
+		log.E("get other perm error")
+		panic(err)
+	}
+
+	return exits, otherPerm
 }

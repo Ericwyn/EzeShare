@@ -14,17 +14,19 @@ import (
 func apiReceiver(ctx *gin.Context) {
 	sign, signExit := ctx.GetPostForm("sign")
 	transferId, transferIdExit := ctx.GetPostForm("transferId")
-	timeStampStr, timeStampExit := ctx.GetPostForm("timeStamp")
+	fileNameParam, fileNameExit := ctx.GetPostForm("fileName")
+	timeStampParam, timeStampExit := ctx.GetPostForm("timeStamp")
+	permType, permTypeExit := ctx.GetPostForm("permType")
 
-	if !signExit || !transferIdExit || !timeStampExit {
+	if !signExit || !transferIdExit || !timeStampExit || !permTypeExit || !fileNameExit {
 		ctx.JSON(200, apidef.PubResp{
 			Code: apidef.RespCodeParamError,
-			Msg:  "sign or transferId or timeStamp param is empty",
+			Msg:  "sign or transferId or timeStamp or permType or fileName param is empty",
 		})
 		return
 	}
 
-	timeStampSec, err := strconv.ParseInt(timeStampStr, 10, 64)
+	timeStampSec, err := strconv.ParseInt(timeStampParam, 10, 64)
 	if err != nil {
 		ctx.JSON(200, apidef.PubResp{
 			Code: apidef.RespCodeParamError,
@@ -32,15 +34,32 @@ func apiReceiver(ctx *gin.Context) {
 		})
 		return
 	}
-
-	// 通过 transferId 查找到这一条 preSend 记录
-	transferMsg := storage.GetTransferMsgFromDB(transferId)
-	token := transferMsg.OnceToken
-	if token == "" {
-		token = auth.GetSelfToken()
+	var signCheck = ""
+	if permType == string(apidef.PermTypeOnce) {
+		// 通过 transferId 查找到这一条 preSend 记录
+		transferMsg := storage.GetTransferMsgFromDB(transferId)
+		token := transferMsg.OnceToken
+		if token == "" {
+			ctx.JSON(200, apidef.PubResp{
+				Code: apidef.RespCodeParamError,
+				Msg:  "sign error",
+			})
+			log.I("token error")
+			return
+		}
+		signCheck = auth.FileTransferSign(token, fileNameParam, timeStampSec)
+	} else if permType == string(apidef.PermTypeAlways) {
+		token := auth.GetSelfToken()
+		signCheck = auth.FileTransferSign(token, fileNameParam, timeStampSec)
+	} else {
+		ctx.JSON(200, apidef.PubResp{
+			Code: apidef.RespCodeParamError,
+			Msg:  "perm type param error",
+		})
+		return
 	}
-	signCheck := auth.FileTransferSign(token, transferMsg.FileName, timeStampSec)
-	if signCheck != sign {
+
+	if signCheck != sign || signCheck == "" {
 		ctx.JSON(200, apidef.PubResp{
 			Code: apidef.RespCodeParamError,
 			Msg:  "sign error",
@@ -61,6 +80,7 @@ func apiReceiver(ctx *gin.Context) {
 		return
 	}
 	saveUploadFile(ctx, uploadFile, transferId)
+
 }
 
 func saveUploadFile(ctx *gin.Context, uploadFile *multipart.FileHeader, transferId string) {
