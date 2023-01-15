@@ -169,6 +169,8 @@ func DoFileTransfer(ipAddr string,
 	_ = writer.WriteField("sign", auth.FileTransferSign(decryptToken, file.Name(), unixTimeStamp))
 	_ = writer.WriteField("transferId", transferId)
 	_ = writer.WriteField("fileName", file.Name())
+	_ = writer.WriteField("senderName", deviceutils.GetDeviceName())
+	_ = writer.WriteField("fileSizeBits", strconv.FormatInt(file.Size(), 10))
 	_ = writer.WriteField("permTypeReq", string(permTypeReq))
 	_ = writer.WriteField("timeStamp", strconv.Itoa(int(unixTimeStamp)))
 

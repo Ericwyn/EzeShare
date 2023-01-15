@@ -7,21 +7,25 @@ import (
 	"github.com/Ericwyn/EzeShare/storage"
 	"github.com/Ericwyn/GoTools/file"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"mime/multipart"
 	"strconv"
+	"time"
 )
 
 func apiReceiver(ctx *gin.Context) {
 	sign, signExit := ctx.GetPostForm("sign")
-	transferId, transferIdExit := ctx.GetPostForm("transferId")
+	transferId, _ := ctx.GetPostForm("transferId")
 	fileNameParam, fileNameExit := ctx.GetPostForm("fileName")
 	timeStampParam, timeStampExit := ctx.GetPostForm("timeStamp")
 	permType, permTypeExit := ctx.GetPostForm("permType")
+	senderName, _ := ctx.GetPostForm("senderName")
+	fileSizeBits, _ := ctx.GetPostForm("fileSizeBits")
 
-	if !signExit || !transferIdExit || !timeStampExit || !permTypeExit || !fileNameExit {
+	if !signExit || !timeStampExit || !permTypeExit || !fileNameExit {
 		ctx.JSON(200, apidef.PubResp{
 			Code: apidef.RespCodeParamError,
-			Msg:  "sign or transferId or timeStamp or permType or fileName param is empty",
+			Msg:  "sign or timeStamp or permType or fileName param is empty",
 		})
 		return
 	}
@@ -56,6 +60,33 @@ func apiReceiver(ctx *gin.Context) {
 		signCheck = auth.FileTransferSign(token, fileNameParam, timeStampSec)
 	} else if permType == string(apidef.PermTypeAlways) {
 		token := auth.GetSelfToken()
+		fileSize, err := strconv.ParseInt(fileSizeBits, 10, 64)
+		if err != nil {
+			ctx.JSON(200, apidef.PubResp{
+				Code: apidef.RespCodeParamError,
+				Msg:  "fileSize param error",
+			})
+			return
+		}
+
+		if transferId == "" {
+			transferId = uuid.New().String()
+		}
+
+		// 创建一条新的文件传输记录
+		// 写一条记录进去数据库
+		transferMsg := storage.DbEzeShareTransferMsg{
+			TransferId:        transferId,
+			FileName:          fileNameParam,
+			FileSizeKb:        fileSize,
+			OnceToken:         "",
+			TransferStatus:    storage.TransferStatusPreSend,
+			FromDeviceName:    senderName,
+			FromDeviceAddress: ctx.ClientIP(),
+			RequestTime:       time.Now(),
+		}
+		storage.SavePreTransferMsg(transferMsg)
+
 		signCheck = auth.FileTransferSign(token, fileNameParam, timeStampSec)
 	} else {
 		ctx.JSON(200, apidef.PubResp{
