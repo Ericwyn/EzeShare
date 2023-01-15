@@ -7,7 +7,6 @@ import (
 	"github.com/Ericwyn/EzeShare/auth"
 	"github.com/Ericwyn/EzeShare/log"
 	"github.com/Ericwyn/EzeShare/scan"
-	"github.com/Ericwyn/EzeShare/utils"
 	"github.com/Ericwyn/EzeShare/utils/deviceutils"
 	"github.com/Ericwyn/GoTools/file"
 	"io"
@@ -24,7 +23,7 @@ import (
 func DoPermRequest(receiverMsg scan.BroadcastMsg, file file.File, permType apidef.PermType, uploadPercentCb func(per int)) {
 	alwaysToken := auth.CheckReceiverAlwaysToken(receiverMsg.DeviceId)
 	if alwaysToken != "" {
-		DoFileTransfer(receiverMsg.Address, alwaysToken, "", file, uploadPercentCb)
+		DoFileTransfer(receiverMsg.Address, apidef.PermTypeAlways, alwaysToken, "", file, uploadPercentCb)
 		return
 	}
 
@@ -95,8 +94,14 @@ func DoPermRequest(receiverMsg scan.BroadcastMsg, file file.File, permType apide
 		auth.SaveReceiverAlwaysToken(receiverDeviceId, decryptToken, receiverMsg.Name, receiverMsg.DeviceType)
 		// 保存 token 进去
 	}
+	var permTypeReq apidef.PermType
+	if permTypeResp == string(apidef.PermReqRespAllowAlways) {
+		permTypeReq = apidef.PermTypeAlways
+	} else if permTypeResp == string(apidef.PermReqRespAllowOnce) {
+		permTypeReq = apidef.PermTypeOnce
+	}
 
-	DoFileTransfer(receiverMsg.Address, decryptToken, transferIdResp, file, uploadPercentCb)
+	DoFileTransfer(receiverMsg.Address, permTypeReq, decryptToken, transferIdResp, file, uploadPercentCb)
 }
 
 type UploadFile struct {
@@ -130,6 +135,7 @@ func (f *UploadFile) Read(p []byte) (n int, err error) {
 }
 
 func DoFileTransfer(ipAddr string,
+	permTypeReq apidef.PermType,
 	decryptToken string,
 	transferId string,
 	file file.File,
@@ -163,8 +169,7 @@ func DoFileTransfer(ipAddr string,
 	_ = writer.WriteField("sign", auth.FileTransferSign(decryptToken, file.Name(), unixTimeStamp))
 	_ = writer.WriteField("transferId", transferId)
 	_ = writer.WriteField("fileName", file.Name())
-	_ = writer.WriteField("permType",
-		string(utils.Check(transferId == "", apidef.PermTypeAlways, apidef.PermTypeOnce).(apidef.PermType)))
+	_ = writer.WriteField("permTypeReq", string(permTypeReq))
 	_ = writer.WriteField("timeStamp", strconv.Itoa(int(unixTimeStamp)))
 
 	err = writer.Close()

@@ -26,6 +26,12 @@ func apiReceiver(ctx *gin.Context) {
 		return
 	}
 
+	log.D("sign: ", sign,
+		", transferId: ", transferId,
+		", fileName: ", fileNameParam,
+		", timeStamp: ", timeStampParam,
+		", permType: ", permType)
+
 	timeStampSec, err := strconv.ParseInt(timeStampParam, 10, 64)
 	if err != nil {
 		ctx.JSON(200, apidef.PubResp{
