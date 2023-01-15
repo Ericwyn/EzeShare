@@ -44,7 +44,7 @@ func initAPI(router *gin.Engine) {
 
 // NewMux 返回全局路由, 包括静态资源
 func NewMux() *gin.Engine {
-	router := gin.Default()
+	router := gin.New()
 
 	// 超长超时时间
 	router.Use(gin.Logger(), timeoutMiddleware(time.Minute*30))

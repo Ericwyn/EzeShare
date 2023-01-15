@@ -66,15 +66,35 @@ func runSender(args ui.MainUiArgs) {
 func printAllReceivers(receiver []scan.BroadcastMsg) {
 	fmt.Println("\n\n\n\n\n\n\n\n\n")
 	fmt.Println("当前 receiver 列表如下: ")
-	fmt.Println("\t address", "\t\t", "name\t\t\t", "deviceId", "\t\t", "deviceType")
+	fmt.Println(
+		buildLenStr("id", 5),
+		buildLenStr("address", 20),
+		buildLenStr("name", 20),
+		buildLenStr("deviceId", 15),
+		buildLenStr("type", 10),
+	)
 	for i, msg := range receiver {
-		fmt.Println("["+strconv.Itoa(i)+"]\t", msg.Address, "\t",
-			msg.Name, "\t",
-			msg.DeviceId, "\t",
-			msg.DeviceType)
+		fmt.Println(
+			buildLenStr("["+strconv.Itoa(i)+"]", 5),
+			buildLenStr(msg.Address, 20),
+			buildLenStr(msg.Name, 20),
+			buildLenStr(msg.DeviceId, 15),
+			buildLenStr(msg.DeviceType, 10),
+		)
 	}
 	fmt.Println("-----------------------")
 	fmt.Println("输入编号并回车, 选择具体 receiver")
+}
+
+func buildLenStr(str string, targetLen int) string {
+	if len(str) > targetLen {
+		return str
+	} else {
+		for i := len(str); i < targetLen; i++ {
+			str = str + " "
+		}
+		return str
+	}
 }
 
 func printUploadProcess(fileName string, per int) {

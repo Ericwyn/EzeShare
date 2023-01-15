@@ -10,7 +10,7 @@ const ConfigKeySelfIp ConfigKey = "ConfigKeySelfIp"
 
 // DbEzeShareConfig 数据配置表
 type DbEzeShareConfig struct {
-	Key   ConfigKey `xorm:"pk"`
+	Key   ConfigKey `xorm:"pk notnull"`
 	Value string
 }
 
@@ -28,7 +28,7 @@ const TokenTypeFromOther TokenType = "Other" // 别人签发给自己的
 
 // DbEzeSharePerm 连接权限信息表，保存自己签发给别人，和别人签发给自己的 Token
 type DbEzeSharePerm struct {
-	Id         int64
+	Id         int64      `xorm:"notnull pk autoincr"`
 	DeviceName string     // 设备名称
 	DeviceId   string     // 设备 ID
 	DeviceType DeviceType // 设备类型, 类似于 Windows/Mac/Android 之类的字符串
@@ -45,7 +45,7 @@ const TransferStatusFinish TransferStatus = 3  // 发送完毕
 
 // DbEzeShareTransferMsg 传输信息表，保存文件传输记录，别人请求传输文件的时候就会记录一条信息
 type DbEzeShareTransferMsg struct {
-	Id             int64
+	Id             int64  `xorm:"notnull pk unique autoincr"`
 	TransferId     string // 随机字符串，用来标记一次传输
 	FileName       string
 	FileSizeKb     int64

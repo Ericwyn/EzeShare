@@ -20,7 +20,36 @@ go build ./EzeShare.go
 ```
 
 shell 显示
+```shell
+root@mini-godzilla:/opt/EzeShare# ./EzeShare -sender -f "README.md"
+  _____         ____  _
+ | ____|_______/ ___|| |__   __ _ _ __ ___
+ |  _| |_  / _ \___ \| '_ \ / _` | '__/ _ \
+ | |___ / /  __/___) | | | | (_| | | |  __/
+ |_____/___\___|____/|_| |_|\__,_|_|  \___|
 
+          run in mode: Sender
+
+当前设备 IP 为  192.168.199.100
+
+
+
+
+
+
+
+
+
+
+当前 receiver 列表如下:
+         address                 name                    deviceId                deviceType
+[0]      192.168.199.10          Desktop-Godzilla        12f0ea82        windows
+-----------------------
+输入编号并回车, 选择具体 receiver
+0
+[01-15 22:54:39] [I] 上传 README.md, 进度: [==================== ]
+root@mini-godzilla:/opt/EzeShare#
+```
 
 
 ### 接收
@@ -28,7 +57,22 @@ shell 显示
 ./EzeShare -receiver
 ```
 
+shell 显示
+```shell
+PS D:\Chaos\go\EzeShare> go run .\EzeShare.go -receiver
+  _____         ____  _
+ | ____|_______/ ___|| |__   __ _ _ __ ___
+ |  _| |_  / _ \___ \| '_ \ / _` | '__/ _ \
+ | |___ / /  __/___) | | | | (_| | | |  __/
+ |_____/___\___|____/|_| |_|\__,_|_|  \___|
 
+          run in mode: Receiver
+
+[01-15 22:54:36] [I] 使用历史 IP 设置 : 192.168.199.10
+[01-15 22:54:36] [I] start http server in Addr 192.168.199.10:23019
+[01-15 22:54:39] [I] save file to new name: README.md(8)
+[01-15 22:54:39] [I] save file success, filePath : C:\Users\Ericwyn\Downloads\EzeShareFiles/README.md(8)
+```
 
 
 ## 基本发送逻辑

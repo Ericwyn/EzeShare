@@ -12,6 +12,11 @@ import (
 	"strings"
 )
 
+var TerminalUi = ui.UI{
+	Name:      "Terminal",
+	RunMainUI: runTerminalMainUi,
+}
+
 func runTerminalMainUi(args ui.MainUiArgs) {
 	printLogo(args.RunMode)
 

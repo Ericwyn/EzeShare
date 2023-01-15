@@ -55,10 +55,10 @@ func SaveTransferStatus(transferId string, status TransferStatus, fileSavePath s
 		return
 	}
 	if affected != 1 {
-		log.E("update transfer status fail, id: ", transMsg, "status: ", status)
+		log.D("update transfer status fail, id: ", transMsg, "status: ", status)
 		return
 	}
-	log.I("update transfer status, id: ", transMsg, "status: ", status)
+	log.D("update transfer status, id: ", transMsg, "status: ", status)
 }
 
 func GetTransferMsgFromDB(transferId string) *DbEzeShareTransferMsg {
@@ -89,7 +89,7 @@ func RenameUploadFileToDB(transferId string, newFileName string) {
 		return
 	}
 	if affected != 1 {
-		log.E("update file name file, transfer_id: ", transferId, ", new file name: ", newFileName)
+		log.D("update file name file, transfer_id: ", transferId, ", new file name: ", newFileName)
 		return
 	}
 }

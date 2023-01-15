@@ -12,6 +12,9 @@ import (
 	"time"
 )
 
+// 一次只允许一个 perm check 请求
+var isPermCheckNow = false
+
 type PermReqCallback func(apidef.ApiPermReq) apidef.PermReqRespType
 
 var permReqCallback PermReqCallback
@@ -21,6 +24,17 @@ func SetPermReqCallback(cb PermReqCallback) {
 }
 
 func apiPermReq(ctx *gin.Context) {
+	if isPermCheckNow {
+		ctx.JSON(200, apidef.PubResp{
+			Code: apidef.RespCodeServerError,
+			Msg:  "server check another perm req now, please try again later",
+		})
+		return
+	}
+
+	isPermCheckNow = true
+	defer func() { isPermCheckNow = false }()
+
 	var reqBody apidef.ApiPermReq
 	err := ctx.BindJSON(&reqBody)
 	if err != nil {
@@ -73,7 +87,7 @@ func apiPermReq(ctx *gin.Context) {
 				wgDone = true
 			}
 		}, func(i interface{}) {
-			log.I("wait group done panic, ", i)
+			log.E("wait group done panic, ", i)
 		})
 		permRespTypeFromUI = permType
 	}()
