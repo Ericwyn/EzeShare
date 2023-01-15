@@ -86,6 +86,29 @@ func DoPermRequest(ipAddr string, file file.File, permType apidef.PermType) {
 	DoFileTransfer(ipAddr, decryptToken, transferIdResp, file)
 }
 
+type UploadFile struct {
+	io.Reader       // 读取器
+	Total     int64 // 总大小
+	Current   int64 // 当前大小
+}
+
+// 实现io.Reader接口的Read方法
+// p是一个字节切片，n是读取的字节数，err是错误信息
+func (f *UploadFile) Read(p []byte) (n int, err error) {
+	n, err = f.Reader.Read(p)
+	f.Current += int64(n)
+	// 这里可以打印下载进度
+	percent := float64(f.Current*10000/f.Total) / 100
+	if int(percent)%5 == 0 && (percent-float64(int(percent)) == 0) {
+		log.I("file uploading: ", percent)
+	}
+	if f.Current == f.Total {
+		//log.I("\rfile upload finish !!!!：%.2f%%", float64(f.Current*10000/f.Total)/100)
+		log.I("file upload finish!!!!!!")
+	}
+	return
+}
+
 func DoFileTransfer(ipAddr string, decryptToken string, transferId string, file file.File) {
 	url := "http://" + ipAddr + ":" + strconv.Itoa(apidef.HttpApiServerPort) +
 		apidef.ApiPathFileTransfer
@@ -103,11 +126,17 @@ func DoFileTransfer(ipAddr string, decryptToken string, transferId string, file 
 	if err != nil {
 		return
 	}
-	_, err = io.Copy(part, openFile)
+
+	uploadFile := &UploadFile{
+		Reader: openFile,
+		Total:  file.Size(),
+	}
+
+	_, err = io.Copy(part, uploadFile)
 
 	_ = writer.WriteField("sign", auth.FileTransferSign(decryptToken, file.Name(), unixTimeStamp))
 	_ = writer.WriteField("transferId", transferId)
-	_ = writer.WriteField("timeStamp", strconv.Itoa(int(time.Now().Unix())))
+	_ = writer.WriteField("timeStamp", strconv.Itoa(int(unixTimeStamp)))
 
 	err = writer.Close()
 	if err != nil {

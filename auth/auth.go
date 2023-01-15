@@ -187,6 +187,7 @@ func DecryptRSA(base64EncryptStr, path string) (decryptStr string, err error) {
 // token: 解密后的 token, 可以是 OnceToken 也可以是 Self token
 // 通过 md5(token + fileName + timeStamp) 得到一个密文
 func FileTransferSign(token string, fileName string, timeStampSec int64) string {
+	log.I("cal sign, token : ", token, ", fileName: ", fileName, ", timeStamp: ", timeStampSec)
 	sum := md5.Sum([]byte(token + fileName + strconv.Itoa(int(timeStampSec))))
 	return fmt.Sprintf("%x\n", sum)
 }

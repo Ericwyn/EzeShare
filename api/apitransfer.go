@@ -111,6 +111,7 @@ func saveUploadFile(ctx *gin.Context, uploadFile *multipart.FileHeader, transfer
 		})
 		return
 	}
+	log.I("save file success, filePath : ", finalSavePath)
 	ctx.JSON(200, apidef.PubResp{
 		Code: apidef.RespCodeSuccess,
 		Msg:  "transfer file success",
