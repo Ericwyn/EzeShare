@@ -1,21 +1,29 @@
 package auth
 
 import (
+	"crypto/md5"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"fmt"
 	"github.com/Ericwyn/EzeShare/log"
 	"github.com/Ericwyn/EzeShare/storage"
 	"github.com/Ericwyn/GoTools/file"
 	"github.com/google/uuid"
 	"os"
+	"strconv"
 )
 
 const rsaKeyBits = 2048
 
+var tokenSelfCache = ""
+
 func GetTokenSelf() string {
+	if tokenSelfCache != "" {
+		return tokenSelfCache
+	}
 	exit, token := storage.GetSelfTokenFromDB()
 	if !exit {
 		token = uuid.New().String()
@@ -23,7 +31,8 @@ func GetTokenSelf() string {
 
 		storage.SaveSelfToken(token)
 	}
-	return token
+	tokenSelfCache = token
+	return tokenSelfCache
 }
 
 func isRsaKeyExits() bool {
@@ -172,4 +181,12 @@ func DecryptRSA(base64EncryptStr, path string) (decryptStr string, err error) {
 	privateKey, err := x509.ParsePKCS8PrivateKey(block.Bytes) //还原数据
 	res, err := rsa.DecryptPKCS1v15(rand.Reader, privateKey.(*rsa.PrivateKey), base64Bytes)
 	return string(res), err
+}
+
+// FileTransferSign 方法签名
+// token: 解密后的 token, 可以是 OnceToken 也可以是 Self token
+// 通过 md5(token + fileName + timeStamp) 得到一个密文
+func FileTransferSign(token string, fileName string, timeStampSec int64) string {
+	sum := md5.Sum([]byte(token + fileName + strconv.Itoa(int(timeStampSec))))
+	return fmt.Sprintf("%x\n", sum)
 }

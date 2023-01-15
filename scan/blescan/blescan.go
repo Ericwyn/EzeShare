@@ -6,7 +6,7 @@ const ScanTypeNameBle scan.ScanTypeName = "BLE"
 
 var BleScanType = scan.ScanType{
 	Name: ScanTypeNameBle,
-	StartScan: func(callback scan.ScanCallback) {
+	StartScanAsync: func(callback scan.ScanCallback) {
 
 	},
 }

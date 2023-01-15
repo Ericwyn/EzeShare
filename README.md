@@ -36,7 +36,6 @@ EzeShare 一个跨平台文件传输项目，支持 Pc / Android
     - 发送方公钥加密后的 token
       - token 由接收方使用 (自己密钥 + 接收方名称 + 接收方文件) md5 得到
     - type: once / always
-    - 接收方公钥
 
 - `/api/fileTransfer`
 

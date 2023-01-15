@@ -6,6 +6,7 @@ import (
 	"github.com/Ericwyn/EzeShare/log"
 	"github.com/Ericwyn/EzeShare/storage"
 	"github.com/Ericwyn/EzeShare/ui"
+	"github.com/Ericwyn/EzeShare/utils/errutils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"sync"
@@ -46,7 +47,7 @@ func apiPermReq(ctx *gin.Context) {
 	// 60s 后解锁
 	go func() {
 		time.Sleep(60 * time.Second)
-		try(func() {
+		errutils.Try(func() {
 			if !wgDone {
 				wg.Done()
 				wgDone = true
@@ -58,7 +59,7 @@ func apiPermReq(ctx *gin.Context) {
 	}()
 
 	ui.TerminalUi.ShowPermReqUiAsync(reqBody, func(permType apidef.PermReqRespType) {
-		try(func() {
+		errutils.Try(func() {
 			if !wgDone {
 				wg.Done()
 				wgDone = true
@@ -97,7 +98,7 @@ func generalPermResp(reqBody apidef.ApiPermReq, permRespType apidef.PermReqRespT
 		transferMsg := storage.DbEzeShareTransferMsg{
 			TransferId:        transferId,
 			FileName:          reqBody.FileName,
-			FileSizeKb:        reqBody.FileSizeKb,
+			FileSizeKb:        reqBody.FileSizeBits,
 			OnceToken:         "",
 			TransferStatus:    storage.TransferStatusPreSend,
 			FromDeviceName:    reqBody.SenderName,
@@ -132,7 +133,7 @@ func generalPermResp(reqBody apidef.ApiPermReq, permRespType apidef.PermReqRespT
 		transferMsg := storage.DbEzeShareTransferMsg{
 			TransferId:        transferId,
 			FileName:          reqBody.FileName,
-			FileSizeKb:        reqBody.FileSizeKb,
+			FileSizeKb:        reqBody.FileSizeBits,
 			OnceToken:         onceToken,
 			TransferStatus:    storage.TransferStatusPreSend,
 			FromDeviceName:    reqBody.SenderName,
@@ -161,17 +162,4 @@ func generalPermResp(reqBody apidef.ApiPermReq, permRespType apidef.PermReqRespT
 			},
 		}
 	}
-}
-
-func apiReceiver(ctx *gin.Context) {
-	// TODO 接口请求处理
-}
-
-func try(fun func(), handler func(interface{})) {
-	defer func() {
-		if err := recover(); err != nil {
-			handler(err)
-		}
-	}()
-	fun()
 }

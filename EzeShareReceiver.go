@@ -13,7 +13,7 @@ func main() {
 	scanType := udpscan.UdpScanType
 
 	// 协程执行广播, 每 2s 播发一次自己的位置
-	go scanType.StartBroadCast(999, 2*time.Second)
+	scanType.StartBroadCastAsync(999, 2*time.Second)
 
 	// 开启一个认证和文件接收的 api 服务器
 	api.StartReceiverHttpServer()

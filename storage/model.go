@@ -48,6 +48,7 @@ type DbEzeShareTransferMsg struct {
 	TransferId     string // 随机字符串，用来标记一次传输
 	FileName       string
 	FileSizeKb     int64
+	FileSavePath   string         // 文件保存位置
 	OnceToken      string         // 传输这个文件的 token, 为空的话，代表的是自己签发的永久 OnceToken
 	TransferStatus TransferStatus // 是否已经开始传输
 

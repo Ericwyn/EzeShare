@@ -1,16 +1,15 @@
 package api
 
 import (
+	"github.com/Ericwyn/EzeShare/api/apidef"
 	"github.com/Ericwyn/EzeShare/log"
 	"net/http"
 	"strconv"
 	"time"
 )
 
-const HttpServerPort = 23019
-
 func StartReceiverHttpServer() {
-	addr := ":" + strconv.Itoa(HttpServerPort)
+	addr := ":" + strconv.Itoa(apidef.HttpApiServerPort)
 	s := &http.Server{
 		Addr:           addr,
 		Handler:        NewMux(),

@@ -1,6 +1,6 @@
 package apidef
 
-import "os"
+const HttpApiServerPort = 23019
 
 const ApiPathPermReq = "/api/premReq"
 const ApiPathFileTransfer = "/api/fileTransfer"
@@ -9,6 +9,7 @@ const ApiPathFileTransfer = "/api/fileTransfer"
 
 const RespCodeSuccess = 2000
 const RespCodeParamError = 4001
+const RespCodeServerError = 5001
 
 type PermType string
 
@@ -30,7 +31,7 @@ type PubResp struct {
 type ApiPermReq struct {
 	PermType     PermType // 一次传输，或者是多次传输
 	FileName     string   // 文件名称
-	FileSizeKb   int64
+	FileSizeBits int64
 	SenderName   string
 	SenderAddr   string
 	SenderPubKey string // 发送者公钥
@@ -41,7 +42,7 @@ func (apiPermReq *ApiPermReq) CheckReq() string {
 	if apiPermReq.FileName == "" {
 		return "file name is empty"
 	}
-	if apiPermReq.FileSizeKb == 0 {
+	if apiPermReq.FileSizeBits == 0 {
 		return "file size is empty"
 	}
 	if apiPermReq.SenderName == "" {
@@ -60,16 +61,16 @@ type ApiPermResp struct {
 	//ReceiverPubKey string   // 接收者公钥
 }
 
-// 文件传输接口
-
-type ApiFileTransferReq struct {
-	Sign       string  // md5( sender 私钥解密后的 SecToken + fileName + timeStamp)
-	TransferId string  // 来自 receiver 生成的 id
-	TimeStamp  int64   // 发送的 unix 时间戳
-	File       os.File // 文件信息
-}
-
-type ApiFileTransferResp struct {
-	Code int
-	Msg  string
-}
+//// 文件传输接口
+//
+//type ApiFileTransferReq struct {
+//	Sign       string  // md5( sender 私钥解密后的 SecToken + fileName + timeStamp)
+//	TransferId string  // 来自 receiver 生成的 id
+//	TimeStamp  int64   // 发送的 unix 时间戳
+//	File       os.File // 文件信息
+//}
+//
+//type ApiFileTransferResp struct {
+//	Code int
+//	Msg  string
+//}

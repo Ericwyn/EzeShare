@@ -20,10 +20,12 @@ var isUdpBroadcastIng = false
 
 var UdpScanType = scan.ScanType{
 	Name: ScanTypeNameUdp,
-	StartScan: func(callback scan.ScanCallback) {
+	StartScanAsync: func(callback scan.ScanCallback) {
 		go startUdpScan(callback)
 	},
-	StartBroadCast: sendUdpBroadcast,
+	StartBroadCastAsync: func(times int, sleepDuration time.Duration) {
+		go sendUdpBroadcast(times, sleepDuration)
+	},
 	StopScan: func() {
 		isUdpScanIng = false
 	},
@@ -127,7 +129,7 @@ func startUdpScan(callback scan.ScanCallback) {
 		return
 	}
 
-	log.I("start receiver msg")
+	//log.I("start receiver msg")
 
 	// 在UDP地址上建立UDP监听,得到连接
 	conn, e := net.ListenUDP("udp", addr)
@@ -161,9 +163,10 @@ func startUdpScan(callback scan.ScanCallback) {
 		}
 
 		msg := string(buffer[:i])
-		log.D("scan msg: ", msg, " from ", udpAddr)
+		//log.D("scan msg: ", msg, " from ", udpAddr)
 
 		broadcastMsg := parseMsg(msg)
+		broadcastMsg.Address = udpAddr.IP.String()
 		callback(true, []scan.BroadcastMsg{*broadcastMsg})
 	}
 

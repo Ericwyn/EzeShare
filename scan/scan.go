@@ -10,18 +10,18 @@ package scan
 //	return scanType
 //}
 
-//// StartScan 策略模式选择扫描方案
-//func StartScan(typeName ScanTypeName, scanDuration time.Duration, callback ScanCallback) {
+//// StartScanAsync 策略模式选择扫描方案
+//func StartScanAsync(typeName ScanTypeName, scanDuration time.Duration, callback ScanCallback) {
 //	scanType := getScanType(typeName)
-//	scanType.StartScan(callback)
+//	scanType.StartScanAsync(callback)
 //}
 //
 //func StopScan(typeName ScanTypeName, ) {
 //
 //}
 //
-//// StartBroadCast 开始广播消息
-//func StartBroadCast(typeName ScanTypeName, broadCastTimes int, broadCastInterval int) {
+//// StartBroadCastAsync 开始广播消息
+//func StartBroadCastAsync(typeName ScanTypeName, broadCastTimes int, broadCastInterval int) {
 //	scanType := getScanType(typeName)
-//	scanType.StartBroadCast()
+//	scanType.StartBroadCastAsync()
 //}

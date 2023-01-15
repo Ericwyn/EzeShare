@@ -11,12 +11,15 @@ var TerminalUi UI = UI{
 	ShowPermReqUiAsync: func(req apidef.ApiPermReq, callback PermReqUiCallback) {
 		go terminalShowPermReqUi(req, callback)
 	},
+	ShowScanWaitUiAsync: func(callback ScanWaitUiCallback) {
+		go terminalShowScanWaiUi(callback)
+	},
 }
 
 func terminalShowPermReqUi(req apidef.ApiPermReq, callback PermReqUiCallback) {
 	// TODO 入队实现，一次只处理一个请求
 
-	log.I("收到来自", req.SenderName, "的文件: ", req.FileName, ", 大小: ", req.FileSizeKb)
+	log.I("收到来自", req.SenderName, "的文件: ", req.FileName, ", 大小: ", req.FileSizeBits)
 	log.I("是否接收? 0. 拒绝接收, 1. 接收一次, 2. 始终允许")
 	var allowInput string
 	fmt.Scanln(&allowInput)
@@ -28,4 +31,12 @@ func terminalShowPermReqUi(req apidef.ApiPermReq, callback PermReqUiCallback) {
 	} else if allowInput == "2" {
 		callback(apidef.PermReqRespAllowAlways)
 	}
+}
+
+func terminalShowScanWaiUi(callback ScanWaitUiCallback) {
+	log.I("是否停止扫描? 输入任意参数停止扫描")
+	var scanWaitInput string
+	fmt.Scanln(&scanWaitInput)
+
+	callback()
 }
