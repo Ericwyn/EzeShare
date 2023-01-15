@@ -119,9 +119,10 @@ func generalPermResp(reqBody apidef.ApiPermReq, permRespType apidef.PermReqRespT
 			Code: apidef.RespCodeSuccess,
 			Msg:  "success",
 			Data: apidef.ApiPermResp{
-				SecToken:   secToken,
-				PermType:   permRespType,
-				TransferId: transferId,
+				SecToken:         secToken,
+				PermType:         permRespType,
+				TransferId:       transferId,
+				ReceiverDeviceId: auth.GetSelfDeviceId(),
 			},
 		}
 	} else if permRespType == apidef.PermReqRespAllowOnce {
@@ -154,9 +155,10 @@ func generalPermResp(reqBody apidef.ApiPermReq, permRespType apidef.PermReqRespT
 			Code: apidef.RespCodeSuccess,
 			Msg:  "success",
 			Data: apidef.ApiPermResp{
-				SecToken:   secToken,
-				TransferId: transferId,
-				PermType:   permRespType,
+				SecToken:         secToken,
+				TransferId:       transferId,
+				PermType:         permRespType,
+				ReceiverDeviceId: auth.GetSelfDeviceId(),
 			},
 		}
 
@@ -165,8 +167,9 @@ func generalPermResp(reqBody apidef.ApiPermReq, permRespType apidef.PermReqRespT
 			Code: apidef.RespCodeParamError,
 			Msg:  "",
 			Data: apidef.ApiPermResp{
-				SecToken: "",
-				PermType: apidef.PermReqRespDisAllow,
+				SecToken:         "",
+				PermType:         apidef.PermReqRespDisAllow,
+				ReceiverDeviceId: auth.GetSelfDeviceId(),
 			},
 		}
 	}
