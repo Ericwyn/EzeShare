@@ -20,7 +20,7 @@ const UdpReceiverPort = 23010
 var isUdpScanIng = false
 var isUdpBroadcastIng = false
 
-var UdpScanType = scan.ScanType{
+var UdpScanType = scan.ScanMethod{
 	Name: ScanTypeNameUdp,
 	StartScanAsync: func(callback scan.ScanCallback) {
 		go startUdpScan(callback)

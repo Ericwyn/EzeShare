@@ -1,7 +1,7 @@
 package scan
 
-//func GetScanType(typeName ScanTypeName) ScanType {
-//	var scanType ScanType
+//func GetScanType(typeName ScanTypeName) ScanMethod {
+//	var scanType ScanMethod
 //	if typeName == udpscan.ScanTypeNameUdp {
 //		scanType = udpscan.UdpScanType
 //	} else if typeName == blescan.ScanTypeNameBle {

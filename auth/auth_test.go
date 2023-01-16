@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/Ericwyn/EzeShare/log"
+	"github.com/Ericwyn/EzeShare/scan"
 	"github.com/Ericwyn/EzeShare/storage"
 	"sync"
 	"testing"
@@ -56,4 +58,16 @@ func TestWaitGroup(t *testing.T) {
 	}()
 
 	a()
+}
+
+func TestJsonMarshal(t *testing.T) {
+	msg := scan.BroadcastMsg{
+		Name:       "nameee",
+		Address:    "addressss",
+		DeviceId:   "deviceIdddd",
+		DeviceType: "deviceTypeeeee",
+	}
+
+	marshal, _ := json.Marshal(msg)
+	fmt.Println(string(marshal))
 }
