@@ -79,16 +79,17 @@ func DoPermRequest(receiverMsg scan.BroadcastMsg, file file.File, permType apide
 
 	data := apiResp.Data.(map[string]interface{})
 
-	secTokenResp := data["SecToken"].(string)
-	permTypeResp := data["PermType"].(string)
-	transferIdResp := data["TransferId"].(string)
-	receiverDeviceId := data["ReceiverDeviceId"].(string)
+	secTokenResp := data["secToken"].(string)
+	permTypeResp := data["permType"].(string)
+	transferIdResp := data["transferId"].(string)
+	receiverDeviceId := data["receiverDeviceId"].(string)
 	log.D("perm resp, secToken: ", secTokenResp,
 		", permType: ", permTypeResp,
 		", transferId: ", transferIdResp)
 
 	decryptToken, err := auth.DecryptRSA(secTokenResp, auth.GetRsaPrivateKeyPath())
 	if err != nil {
+		log.E("decrypt sec token fail", err)
 		return
 	}
 	log.D("decrypt token: ", decryptToken)
