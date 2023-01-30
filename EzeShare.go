@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/Ericwyn/EzeShare/log"
 	"github.com/Ericwyn/EzeShare/storage"
 	"github.com/Ericwyn/EzeShare/ui"
@@ -11,17 +12,32 @@ import (
 	"os"
 )
 
+var version = "v1.0-beta2"
+
+var showVersion = flag.Bool("v", false, "show version")
 var uiMode = flag.String("ui", "terminal", "set ui mode")
 var sender = flag.Bool("sender", false, "run as sender")
 var receiver = flag.Bool("receiver", false, "run as receiver")
 
-var ipAddr = flag.String("ip", "", "[sender][receiver] set ip address or this device")
-var sendFilePath = flag.String("f", "", "[sender] file path of the file which will send to others")
+var ipAddr = flag.String("ip", "", "set ip address or this device")
+var sendFilePath = flag.String("f", "", "[sender only] file path of the file which will send to others")
 
 var debug = flag.Bool("debug", false, "print debug log and sql")
 
 func main() {
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Println(
+			"  _____         ____  _                    \n" +
+				" | ____|_______/ ___|| |__   __ _ _ __ ___ \n" +
+				" |  _| |_  / _ \\___ \\| '_ \\ / _` | '__/ _ \\\n" +
+				" | |___ / /  __/___) | | | | (_| | | |  __/\n" +
+				" |_____/___\\___|____/|_| |_|\\__,_|_|  \\___|\n" +
+				"                                           \n" +
+				"          versioon: " + version + "\n")
+		return
+	}
 
 	log.SetPrint(log.LogPrintSet{
 		PrintI: true,
