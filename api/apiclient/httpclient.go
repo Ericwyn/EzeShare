@@ -10,11 +10,8 @@ import (
 	"github.com/Ericwyn/EzeShare/utils/deviceutils"
 	"github.com/Ericwyn/GoTools/file"
 	"io"
-	"mime/multipart"
 	"net/http"
-	"os"
 	"strconv"
-	"time"
 )
 
 // apiclient 给 sender 请求 receiver 的 api 接口的工具
@@ -23,7 +20,15 @@ import (
 func DoPermRequest(receiverMsg scan.BroadcastMsg, file file.File, permType apidef.PermType, uploadPercentCb func(per int)) {
 	alwaysToken := auth.CheckReceiverAlwaysToken(receiverMsg.DeviceId)
 	if alwaysToken != "" {
-		DoFileTransfer(receiverMsg.Address, apidef.PermTypeAlways, alwaysToken, "", file, uploadPercentCb)
+		parm := fileTransferReqParam{
+			ipAddr:          receiverMsg.Address,
+			permTypeReq:     apidef.PermTypeAlways,
+			decryptToken:    alwaysToken,
+			transferId:      "",
+			file:            file,
+			uploadPercentCb: uploadPercentCb,
+		}
+		DoFileTransfer(parm)
 		return
 	}
 
@@ -111,8 +116,15 @@ func DoPermRequest(receiverMsg scan.BroadcastMsg, file file.File, permType apide
 	} else {
 		log.D("permType error: " + apiPermResp.PermType)
 	}
-
-	DoFileTransfer(receiverMsg.Address, permTypeReq, decryptToken, apiPermResp.TransferId, file, uploadPercentCb)
+	parm := fileTransferReqParam{
+		ipAddr:          receiverMsg.Address,
+		permTypeReq:     permTypeReq,
+		decryptToken:    decryptToken,
+		transferId:      apiPermResp.TransferId,
+		file:            file,
+		uploadPercentCb: uploadPercentCb,
+	}
+	DoFileTransfer(parm)
 }
 
 type UploadFile struct {
@@ -143,80 +155,6 @@ func (f *UploadFile) Read(p []byte) (n int, err error) {
 		}
 	}
 	return
-}
-
-func DoFileTransfer(ipAddr string,
-	permTypeReq apidef.PermType,
-	decryptToken string,
-	transferId string,
-	file file.File,
-	uploadPercentCb func(per int),
-) {
-	url := "http://" + ipAddr + ":" + strconv.Itoa(apidef.HttpApiServerPort) +
-		apidef.ApiPathFileTransfer
-
-	unixTimeStamp := time.Now().Unix()
-
-	openFile, err := os.Open(file.AbsPath())
-	if err != nil {
-		log.E("open file error", err)
-		return
-	}
-
-	httpBody := &bytes.Buffer{}
-	writer := multipart.NewWriter(httpBody)
-	part, err := writer.CreateFormFile("file", file.Name())
-	if err != nil {
-		return
-	}
-
-	uploadFile := &UploadFile{
-		Reader:            openFile,
-		Total:             file.Size(),
-		TransferPercentCb: uploadPercentCb,
-	}
-
-	_, err = io.Copy(part, uploadFile)
-
-	otherParamMap := map[string]string{
-		"sign":         auth.FileTransferSign(decryptToken, file.Name(), unixTimeStamp),
-		"transferId":   transferId,
-		"fileName":     file.Name(),
-		"senderName":   deviceutils.GetDeviceName(),
-		"fileSizeBits": strconv.FormatInt(file.Size(), 10),
-		"permType":     string(permTypeReq),
-		"timeStamp":    strconv.Itoa(int(unixTimeStamp)),
-	}
-	log.D("do file transfer req, params : ", otherParamMap)
-	for k, v := range otherParamMap {
-		_ = writer.WriteField(k, v)
-	}
-
-	err = writer.Close()
-	if err != nil {
-		return
-	}
-
-	req, err := http.NewRequest("POST", url, httpBody)
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.E("do file transfer http request error")
-		log.E(err)
-	} else {
-		body := &bytes.Buffer{}
-		_, err := body.ReadFrom(resp.Body)
-		if err != nil {
-			log.E("parse file transfer http request resp error")
-			log.E(err)
-		}
-		resp.Body.Close()
-		log.D(resp.StatusCode)
-		log.D(resp.Header)
-		log.D(body)
-	}
 }
 
 func toJson(obj any) string {

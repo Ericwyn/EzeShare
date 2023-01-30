@@ -120,3 +120,4 @@ PS D:\Chaos\go\EzeShare> go run .\EzeShare.go -receiver
     - 通过命令行调用浏览器展示某个 url 的形式，来展示特定 ui
 - 二期
   - gtk ui 或者其他 ui
+

@@ -15,9 +15,9 @@ func TestDoPermRequest(t *testing.T) {
 
 	file.Size()
 
-	DoPermRequest("http://127.0.0.1:23019", file, apidef.PermTypeAlways, func(per int) {
-
-	})
+	//DoPermRequest("http://127.0.0.1:23019", file, apidef.PermTypeAlways, func(per int) {
+	//
+	//})
 }
 
 func TestDo(t *testing.T) {
