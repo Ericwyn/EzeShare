@@ -60,51 +60,59 @@ func DoPermRequest(receiverMsg scan.BroadcastMsg, file file.File, permType apide
 	}
 	defer httpResp.Body.Close()
 
-	//log.D("DoPermRequest response Status:", httpResp.Status)
-	//log.D("DoPermRequest response Headers:", httpResp.Header)
 	respBody, _ := io.ReadAll(httpResp.Body)
-	//fmt.Println("response Body:", string(body))
 
-	var apiResp apidef.PubResp
-	err = json.Unmarshal(respBody, &apiResp)
+	var apiPubResp apidef.PubResp
+	err = json.Unmarshal(respBody, &apiPubResp)
 	if err != nil {
 		log.E("parse respBody error: ", string(respBody))
 		return
 	}
-	if apiResp.Code != apidef.RespCodeSuccess {
+	if apiPubResp.Code != apidef.RespCodeSuccess {
 		log.E("perm req error, ", string(respBody))
 		return
 	}
 	log.D("perm resp : ", string(respBody))
 
-	data := apiResp.Data.(map[string]interface{})
+	data := apiPubResp.Data
 
-	secTokenResp := data["secToken"].(string)
-	permTypeResp := data["permType"].(string)
-	transferIdResp := data["transferId"].(string)
-	receiverDeviceId := data["receiverDeviceId"].(string)
-	log.D("perm resp, secToken: ", secTokenResp,
-		", permType: ", permTypeResp,
-		", transferId: ", transferIdResp)
+	respJson := toJson(data)
+	var apiPermResp apidef.ApiPermResp
+	err = json.Unmarshal([]byte(respJson), &apiPermResp)
+	if err != nil {
+		log.E("parse api perm resp json error")
+		return
+	}
 
-	decryptToken, err := auth.DecryptRSA(secTokenResp, auth.GetRsaPrivateKeyPath())
+	log.D("sec token: " + apiPermResp.SecToken)
+	decryptToken, err := auth.DecryptRSA(apiPermResp.SecToken, auth.GetRsaPrivateKeyPath())
 	if err != nil {
 		log.E("decrypt sec token fail", err)
 		return
 	}
 	log.D("decrypt token: ", decryptToken)
-	if permTypeResp == string(apidef.PermReqRespAllowAlways) {
-		auth.SaveReceiverAlwaysToken(receiverDeviceId, decryptToken, receiverMsg.Name, receiverMsg.DeviceType)
+	if apiPermResp.PermType == apidef.PermReqRespAllowAlways {
+		auth.SaveReceiverAlwaysToken(apiPermResp.ReceiverDeviceId, decryptToken, receiverMsg.Name, receiverMsg.DeviceType)
 		// 保存 token 进去
 	}
 	var permTypeReq apidef.PermType
-	if permTypeResp == string(apidef.PermReqRespAllowAlways) {
+	//if apiPermResp.PermType == apidef.PermReqRespAllowAlways {
+	//	permTypeReq = apidef.PermTypeAlways
+	//} else if apiPermResp.PermType == apidef.PermReqRespAllowOnce {
+	//	permTypeReq = apidef.PermTypeOnce
+	//} else {
+	//	log.D("permType error: " + apiPermResp.PermType)
+	//}
+
+	if apiPermResp.PermType.Equals(apidef.PermReqRespAllowAlways) {
 		permTypeReq = apidef.PermTypeAlways
-	} else if permTypeResp == string(apidef.PermReqRespAllowOnce) {
+	} else if apiPermResp.PermType.Equals(apidef.PermReqRespAllowOnce) {
 		permTypeReq = apidef.PermTypeOnce
+	} else {
+		log.D("permType error: " + apiPermResp.PermType)
 	}
 
-	DoFileTransfer(receiverMsg.Address, permTypeReq, decryptToken, transferIdResp, file, uploadPercentCb)
+	DoFileTransfer(receiverMsg.Address, permTypeReq, decryptToken, apiPermResp.TransferId, file, uploadPercentCb)
 }
 
 type UploadFile struct {
@@ -151,6 +159,7 @@ func DoFileTransfer(ipAddr string,
 
 	openFile, err := os.Open(file.AbsPath())
 	if err != nil {
+		log.E("open file error", err)
 		return
 	}
 

@@ -22,6 +22,10 @@ const PermReqRespAllowOnce PermReqRespType = "AllowOnce"
 const PermReqRespDisAllow PermReqRespType = "DisAllow"
 const PermReqRespAllowAlways PermReqRespType = "AllowAlways"
 
+func (typeNow PermReqRespType) Equals(type2 PermReqRespType) bool {
+	return string(typeNow) == string(type2)
+}
+
 // PubResp 各端统一
 type PubResp struct {
 	Code int    `json:"code"`
