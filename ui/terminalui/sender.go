@@ -57,9 +57,9 @@ func runSender(args ui.MainUiArgs) {
 	apiclient.DoPermRequest(msg,
 		fileForUpload,
 		apidef.PermTypeAlways,
-		func(per int) {
+		func(fileName string, per int) {
 			// 上传文件百分比回调
-			printUploadProcess(fileForUpload.Name(), per)
+			printUploadProcess(fileName, per)
 		})
 }
 

@@ -17,7 +17,11 @@ import (
 // apiclient 给 sender 请求 receiver 的 api 接口的工具
 
 // DoPermRequest 发起一个文件发送请求
-func DoPermRequest(receiverMsg scan.BroadcastMsg, file file.File, permType apidef.PermType, uploadPercentCb func(per int)) {
+func DoPermRequest(receiverMsg scan.BroadcastMsg,
+	file file.File,
+	permType apidef.PermType,
+	uploadPercentCb func(fileName string, per int),
+) {
 	alwaysToken := auth.CheckReceiverAlwaysToken(receiverMsg.DeviceId)
 	if alwaysToken != "" {
 		parm := fileTransferReqParam{
@@ -123,32 +127,34 @@ func DoPermRequest(receiverMsg scan.BroadcastMsg, file file.File, permType apide
 		transferId:      apiPermResp.TransferId,
 		file:            file,
 		uploadPercentCb: uploadPercentCb,
+		isSlice:         receiverMsg.DeviceType == "Android",
 	}
 	DoFileTransfer(parm)
 }
 
 type UploadFile struct {
-	io.Reader                        // 读取器
-	FileName           string        // 文件名字
-	Total              int64         // 总大小
-	Current            int64         // 当前大小
-	TransferPercentNow int           // 传输百分比
-	TransferPercentCb  func(per int) // 传输百分比的回调
-	TransferFinishCb   func()        // 传输完成的回调
+	io.Reader                                        // 读取器
+	Total             int64                          // 总大小
+	TransferPercentCb func(fileName string, per int) // 传输百分比的回调
+	TransferFinishCb  func()                         // 传输完成的回调
+
+	FileName           string // 文件名字
+	currentReadBytes   int64  // 当前大小
+	transferPercentNow int    // 传输百分比
 }
 
 // 实现io.Reader接口的Read方法
 // p是一个字节切片，n是读取的字节数，err是错误信息
 func (f *UploadFile) Read(p []byte) (n int, err error) {
 	n, err = f.Reader.Read(p)
-	f.Current += int64(n)
+	f.currentReadBytes += int64(n)
 	// 这里可以打印下载进度
-	percent := float64(f.Current*10000/f.Total) / 100
-	if int(percent) > f.TransferPercentNow {
-		f.TransferPercentNow = int(percent)
-		f.TransferPercentCb(f.TransferPercentNow)
+	percent := float64(f.currentReadBytes*10000/f.Total) / 100
+	if int(percent) > f.transferPercentNow {
+		f.transferPercentNow = int(percent)
+		f.TransferPercentCb(f.FileName, f.transferPercentNow)
 	}
-	if f.Current == f.Total {
+	if f.currentReadBytes == f.Total {
 		log.D("file upload finish!!!!!!")
 		if f.TransferFinishCb != nil {
 			f.TransferFinishCb()
