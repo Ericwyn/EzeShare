@@ -107,5 +107,5 @@ func printUploadProcess(fileName string, per int) {
 		}
 	}
 	process += "]"
-	log.I("上传 ", fileName, ", 进度: ", process)
+	log.I("上传 ", fileName, ", 总进度: ", process, " ", per, "%")
 }
