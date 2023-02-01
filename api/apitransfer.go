@@ -8,6 +8,7 @@ import (
 	"github.com/Ericwyn/GoTools/file"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"go/types"
 	"mime/multipart"
 	"strconv"
 	"time"
@@ -23,7 +24,7 @@ func apiReceiver(ctx *gin.Context) {
 	fileSizeBits, _ := ctx.GetPostForm("fileSizeBits")
 
 	if !signExit || !timeStampExit || !permTypeExit || !fileNameExit {
-		ctx.JSON(200, apidef.PubResp{
+		ctx.JSON(200, apidef.PubResp[types.Nil]{
 			Code: apidef.RespCodeParamError,
 			Msg:  "sign or timeStamp or permType or fileName param is empty",
 		})
@@ -38,7 +39,7 @@ func apiReceiver(ctx *gin.Context) {
 
 	timeStampSec, err := strconv.ParseInt(timeStampParam, 10, 64)
 	if err != nil {
-		ctx.JSON(200, apidef.PubResp{
+		ctx.JSON(200, apidef.PubResp[types.Nil]{
 			Code: apidef.RespCodeParamError,
 			Msg:  "timeStamp param parse error",
 		})
@@ -52,7 +53,7 @@ func apiReceiver(ctx *gin.Context) {
 		// 通过 transferId 查找到这一条 preSend 记录
 		transferMsg = storage.GetTransferMsgFromDB(transferId)
 		if transferMsg.OnceToken == "" {
-			ctx.JSON(200, apidef.PubResp{
+			ctx.JSON(200, apidef.PubResp[types.Nil]{
 				Code: apidef.RespCodeParamError,
 				Msg:  "sign error",
 			})
@@ -64,7 +65,7 @@ func apiReceiver(ctx *gin.Context) {
 		token := auth.GetSelfToken()
 		fileSize, err := strconv.ParseInt(fileSizeBits, 10, 64)
 		if err != nil {
-			ctx.JSON(200, apidef.PubResp{
+			ctx.JSON(200, apidef.PubResp[types.Nil]{
 				Code: apidef.RespCodeParamError,
 				Msg:  "fileSize param error",
 			})
@@ -91,7 +92,7 @@ func apiReceiver(ctx *gin.Context) {
 
 		signCheck = auth.FileTransferSign(token, fileNameParam, timeStampSec)
 	} else {
-		ctx.JSON(200, apidef.PubResp{
+		ctx.JSON(200, apidef.PubResp[types.Nil]{
 			Code: apidef.RespCodeParamError,
 			Msg:  "perm type param error",
 		})
@@ -99,7 +100,7 @@ func apiReceiver(ctx *gin.Context) {
 	}
 
 	if signCheck != sign || signCheck == "" {
-		ctx.JSON(200, apidef.PubResp{
+		ctx.JSON(200, apidef.PubResp[types.Nil]{
 			Code: apidef.RespCodeParamError,
 			Msg:  "sign error",
 		})
@@ -112,7 +113,7 @@ func apiReceiver(ctx *gin.Context) {
 	if err != nil {
 		log.E("read file error")
 		log.E(err)
-		ctx.JSON(200, apidef.PubResp{
+		ctx.JSON(200, apidef.PubResp[types.Nil]{
 			Code: apidef.RespCodeParamError,
 			Msg:  "read file error",
 		})
@@ -147,7 +148,7 @@ func saveUploadFile(ctx *gin.Context, uploadFile *multipart.FileHeader, transfer
 			log.E("can't find the new name of upload file, " +
 				"there are to many same name file in the down dir")
 
-			ctx.JSON(200, apidef.PubResp{
+			ctx.JSON(200, apidef.PubResp[types.Nil]{
 				Code: apidef.RespCodeServerError,
 				Msg: "can't find the new name of upload file, " +
 					"there are to many same name file in the down dir",
@@ -164,7 +165,7 @@ func saveUploadFile(ctx *gin.Context, uploadFile *multipart.FileHeader, transfer
 	if err != nil {
 		log.E("ctx save upload file fail")
 		log.E(err)
-		ctx.JSON(200, apidef.PubResp{
+		ctx.JSON(200, apidef.PubResp[types.Nil]{
 			Code: apidef.RespCodeServerError,
 			Msg:  "ctx save upload file fail",
 		})
@@ -173,7 +174,7 @@ func saveUploadFile(ctx *gin.Context, uploadFile *multipart.FileHeader, transfer
 	log.I("save file success, fromDevice: [", transferMsg.FromDeviceName,
 		"], fromAddr: [", ctx.ClientIP(),
 		"], filePath : [", finalSavePath, "]")
-	ctx.JSON(200, apidef.PubResp{
+	ctx.JSON(200, apidef.PubResp[types.Nil]{
 		Code: apidef.RespCodeSuccess,
 		Msg:  "transfer file success",
 	})

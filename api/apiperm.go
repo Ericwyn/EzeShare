@@ -8,6 +8,7 @@ import (
 	"github.com/Ericwyn/EzeShare/utils/errutils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"go/types"
 	"sync"
 	"time"
 )
@@ -25,7 +26,7 @@ func SetPermReqCallback(cb PermReqCallback) {
 
 func apiPermReq(ctx *gin.Context) {
 	if isPermCheckNow {
-		ctx.JSON(200, apidef.PubResp{
+		ctx.JSON(200, apidef.PubResp[types.Nil]{
 			Code: apidef.RespCodeServerError,
 			Msg:  "server check another perm req now, please try again later",
 		})
@@ -38,7 +39,7 @@ func apiPermReq(ctx *gin.Context) {
 	var reqBody apidef.ApiPermReq
 	err := ctx.BindJSON(&reqBody)
 	if err != nil {
-		ctx.JSON(200, apidef.PubResp{
+		ctx.JSON(200, apidef.PubResp[types.Nil]{
 			Code: apidef.RespCodeParamError,
 			Msg:  "json parse error",
 		})
@@ -47,7 +48,7 @@ func apiPermReq(ctx *gin.Context) {
 
 	// 校验参数
 	if checkReq := reqBody.CheckReq(); checkReq != "" {
-		ctx.JSON(200, apidef.PubResp{
+		ctx.JSON(200, apidef.PubResp[types.Nil]{
 			Code: apidef.RespCodeParamError,
 			Msg:  checkReq,
 		})
@@ -109,7 +110,7 @@ func generalPermResp(reqBody apidef.ApiPermReq, permRespType apidef.PermReqRespT
 		// 公钥加密
 		secToken, err := auth.EncryptRSAWithPubKeyStr(alwaysToken, reqBody.SenderPubKey)
 		if err != nil {
-			return apidef.PubResp{
+			return apidef.PubResp[types.Nil]{
 				Code: apidef.RespCodeParamError,
 				Msg:  "encrypt with rsa pub key error",
 			}
@@ -129,7 +130,7 @@ func generalPermResp(reqBody apidef.ApiPermReq, permRespType apidef.PermReqRespT
 		}
 		storage.SavePreTransferMsg(transferMsg)
 
-		return apidef.PubResp{
+		return apidef.PubResp[apidef.ApiPermResp]{
 			Code: apidef.RespCodeSuccess,
 			Msg:  "success",
 			Data: apidef.ApiPermResp{
@@ -146,7 +147,7 @@ func generalPermResp(reqBody apidef.ApiPermReq, permRespType apidef.PermReqRespT
 		// 公钥加密
 		secToken, err := auth.EncryptRSAWithPubKeyStr(onceToken, reqBody.SenderPubKey)
 		if err != nil {
-			return apidef.PubResp{
+			return apidef.PubResp[types.Nil]{
 				Code: apidef.RespCodeParamError,
 				Msg:  "encrypt with rsa pub key error",
 			}
@@ -165,7 +166,7 @@ func generalPermResp(reqBody apidef.ApiPermReq, permRespType apidef.PermReqRespT
 		}
 		storage.SavePreTransferMsg(transferMsg)
 
-		return apidef.PubResp{
+		return apidef.PubResp[apidef.ApiPermResp]{
 			Code: apidef.RespCodeSuccess,
 			Msg:  "success",
 			Data: apidef.ApiPermResp{
@@ -177,7 +178,7 @@ func generalPermResp(reqBody apidef.ApiPermReq, permRespType apidef.PermReqRespT
 		}
 
 	} else {
-		return apidef.PubResp{
+		return apidef.PubResp[apidef.ApiPermResp]{
 			Code: apidef.RespCodeParamError,
 			Msg:  "",
 			Data: apidef.ApiPermResp{

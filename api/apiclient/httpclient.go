@@ -71,7 +71,7 @@ func DoPermRequest(receiverMsg scan.BroadcastMsg,
 
 	respBody, _ := io.ReadAll(httpResp.Body)
 
-	var apiPubResp apidef.PubResp
+	var apiPubResp apidef.PubResp[apidef.ApiPermResp]
 	err = json.Unmarshal(respBody, &apiPubResp)
 	if err != nil {
 		log.E("parse respBody error: ", string(respBody))
@@ -83,15 +83,15 @@ func DoPermRequest(receiverMsg scan.BroadcastMsg,
 	}
 	log.D("perm resp : ", string(respBody))
 
-	data := apiPubResp.Data
-
-	respJson := toJson(data)
-	var apiPermResp apidef.ApiPermResp
-	err = json.Unmarshal([]byte(respJson), &apiPermResp)
-	if err != nil {
-		log.E("parse api perm resp json error")
-		return
-	}
+	//data := apiPubResp.Data
+	//
+	//respJson := toJson(data)
+	var apiPermResp apidef.ApiPermResp = apiPubResp.Data
+	//err = json.Unmarshal([]byte(respJson), &apiPermResp)
+	//if err != nil {
+	//	log.E("parse api perm resp json error")
+	//	return
+	//}
 
 	log.D("sec token: " + apiPermResp.SecToken)
 	decryptToken, err := auth.DecryptRSA(apiPermResp.SecToken, auth.GetRsaPrivateKeyPath())

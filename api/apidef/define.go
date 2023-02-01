@@ -27,10 +27,10 @@ func (typeNow PermReqRespType) Equals(type2 PermReqRespType) bool {
 }
 
 // PubResp 各端统一
-type PubResp struct {
+type PubResp[T any] struct {
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`
-	Data any    `json:"data"`
+	Data T      `json:"data"`
 }
 
 type ApiPermReq struct {
