@@ -33,26 +33,38 @@ type fileTransferReqParam struct {
 
 // DoFileTransfer 文件上传 (一次性)
 func DoFileTransfer(param fileTransferReqParam) {
-	if param.isSlice {
+	// 只有文件大小大于最大分片大小的时候，才回去做分片传输，否则也还是用原本的传输方式
+	if param.isSlice && param.file.Size() > maxTransferSize {
 		// 分块读取实现
 		sliceMsgArr := fileslice.Slice(param.file, maxTransferSize)
-		for _, sliceMsg := range sliceMsgArr {
+
+		for i, sliceMsg := range sliceMsgArr {
 
 			sliceDataBytes := sliceMsg.ReadSliceToBytes()
 
 			param.sliceMsg = *sliceMsg
 
+			sliceFileName := param.file.Name() + " (slice " + strconv.Itoa(i+1) + "/" + strconv.Itoa(len(sliceMsgArr)) + ")"
+
 			uploadFile := &UploadFile{
-				Reader:            bytes.NewReader(*sliceDataBytes),
-				FileName:          param.file.Name() + "_slice_" + fmt.Sprint(sliceMsg.SliceNow),
-				Total:             sliceMsg.SliceSizeBytes,
-				TransferPercentCb: param.uploadPercentCb,
+				Reader:   bytes.NewReader(*sliceDataBytes),
+				FileName: param.file.Name() + "_slice_" + fmt.Sprint(sliceMsg.SliceNow),
+				Total:    sliceMsg.SliceSizeBytes,
+				TransferPercentCb: func(fileName string, per int) {
+					// 分块计算的传输百分比不太一样
+					param.uploadPercentCb(
+						sliceFileName,
+						calSliceTransferPer(len(sliceMsgArr), i, per),
+					)
+				},
 			}
 			// 整块上传
 			doFileTransferOnce(param, uploadFile)
 		}
 
 	} else {
+		param.isSlice = false
+
 		openFile, err := os.Open(param.file.AbsPath())
 		if err != nil {
 			log.E("open file error", err)
@@ -69,21 +81,14 @@ func DoFileTransfer(param fileTransferReqParam) {
 	}
 }
 
-func doFileTransferSlice() {
+// calSliceTransferPer 计算分片传输的总百分比
+// 比如一共有 10 个分片，你传输了第 6 个，第 7 个传输了 50%, 那么总的传输进度应该是 65%
+func calSliceTransferPer(totalSliceNum int, sliceNow int, slicePer int) int {
 
-}
+	fmt.Println(float64(slicePer) / 100)
 
-func printUploadProcess(fileName string, per int) {
-	process := "["
-	for i := 0; i <= 100; i += 5 {
-		if i < per {
-			process += "="
-		} else {
-			process += " "
-		}
-	}
-	process += "]"
-	log.I("上传 ", fileName, ", 进度: ", process)
+	perNew := (1.0 / float64(totalSliceNum)) * (float64(sliceNow) + (float64(slicePer) / 100))
+	return int(perNew * 100)
 }
 
 func doFileTransferOnce(param fileTransferReqParam, uploadFile *UploadFile) {
