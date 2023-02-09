@@ -77,6 +77,8 @@ func DoFileTransfer(param fileTransferReqParam) {
 			// 分块上传，对面会在 pubResp 的 data 里面告诉我们有哪些块是已经上传完毕了的
 			transferResp := doFileTransferOnce(param, uploadFile)
 
+			log.D("do file transfer req: ", transferResp)
+
 			var resp apidef.PubResp[[]int64]
 			err := json.Unmarshal([]byte(transferResp), &resp)
 			if err == nil && resp.Data != nil {

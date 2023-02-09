@@ -2,7 +2,7 @@
 function _myscript(){
     if [[ "${COMP_CWORD}" == "1" ]];
     then
-        COMP_WORD="-receiver -sender"
+        COMP_WORD="-receiver -r -sender -s"
         COMPREPLY=($(compgen -W "$COMP_WORD" -- ${COMP_WORDS[${COMP_CWORD}]}))
     else
         if [[ "${COMP_CWORD}" == "2" ]];
@@ -16,11 +16,22 @@ function _myscript(){
             COMPREPLY=($(compgen -W "${COMP_WORD_2}" ${COMP_WORDS[${COMP_CWORD}]}))
             ;;
 
+            -r)
+            COMP_WORD_2="-ip -debug"
+            echo ''
+            echo '2222-receiver'
+            echo ''
+            COMPREPLY=($(compgen -W "${COMP_WORD_2}" ${COMP_WORDS[${COMP_CWORD}]}))
+            ;;
+
             -sender)
             COMP_WORD_2="-ip -f -debug"
             COMPREPLY=($(compgen -W "${COMP_WORD_2}" ${COMP_WORDS[${COMP_CWORD}]}))
             ;;
-
+            -s)
+            COMP_WORD_2="-ip -f -debug"
+            COMPREPLY=($(compgen -W "${COMP_WORD_2}" ${COMP_WORDS[${COMP_CWORD}]}))
+            ;;
             esac
 
         elif [[ "${COMP_CWORD}" == "3" ]];

@@ -1,5 +1,3 @@
 package conf
 
-func Get() {
-
-}
+var RunInPermCheckMode = false
