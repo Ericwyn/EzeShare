@@ -34,12 +34,12 @@ type PubResp[T any] struct {
 }
 
 type ApiPermReq struct {
-	PermType     PermType `json:"permType"` // 一次传输，或者是多次传输
-	FileName     string   `json:"fileName"` // 文件名称
-	FileSizeBits int64    `json:"fileSizeBits"`
-	SenderName   string   `json:"senderName"`
-	SenderAddr   string   `json:"senderAddr"`
-	SenderPubKey string   `json:"senderPubKey"` // 发送者公钥
+	PermType      PermType `json:"permType"` // 一次传输，或者是多次传输
+	FileName      string   `json:"fileName"` // 文件名称
+	FileSizeBytes int64    `json:"fileSizeBytes"`
+	SenderName    string   `json:"senderName"`
+	SenderAddr    string   `json:"senderAddr"`
+	SenderPubKey  string   `json:"senderPubKey"` // 发送者公钥
 }
 
 // CheckReq 参数校验, 校验不通过的时候就返回描述  string
@@ -47,7 +47,7 @@ func (apiPermReq *ApiPermReq) CheckReq() string {
 	if apiPermReq.FileName == "" {
 		return "file name is empty"
 	}
-	if apiPermReq.FileSizeBits == 0 {
+	if apiPermReq.FileSizeBytes == 0 {
 		return "file size is empty"
 	}
 	if apiPermReq.SenderName == "" {

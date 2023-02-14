@@ -40,11 +40,11 @@ func DoPermRequest(receiverMsg scan.BroadcastMsg,
 		apidef.ApiPathPermReq
 
 	reqStruct := apidef.ApiPermReq{
-		PermType:     permType,
-		FileName:     file.Name(),
-		FileSizeBits: file.Size(),
-		SenderName:   deviceutils.GetDeviceName(),
-		SenderPubKey: auth.GetRsaPublicKey(),
+		PermType:      permType,
+		FileName:      file.Name(),
+		FileSizeBytes: file.Size(),
+		SenderName:    deviceutils.GetDeviceName(),
+		SenderPubKey:  auth.GetRsaPublicKey(),
 	}
 
 	reqJson := toJson(reqStruct)

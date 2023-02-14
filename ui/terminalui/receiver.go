@@ -19,7 +19,7 @@ func runReceiver(args ui.MainUiArgs) {
 
 	// 设置接收到文件权限请求时候的回调
 	api.SetPermReqCallback(func(req apidef.ApiPermReq) apidef.PermReqRespType {
-		log.I("收到来自", req.SenderName, "的文件: ", req.FileName, ", 大小: ", req.FileSizeBits)
+		log.I("收到来自", req.SenderName, "的文件: ", req.FileName, ", 大小: ", req.FileSizeBytes)
 		log.I("是否接收? 0. 拒绝接收, 1. 接收一次, 2. 始终允许")
 		var allowInput string
 		fmt.Scanln(&allowInput)
