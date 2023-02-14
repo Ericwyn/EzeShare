@@ -125,7 +125,7 @@ func apiReceiver(ctx *gin.Context) {
 }
 
 func saveUploadFile(ctx *gin.Context, uploadFile *multipart.FileHeader, transferMsg storage.DbEzeShareTransferMsg) {
-	fileName := uploadFile.Filename
+	fileName := transferMsg.FileName
 	saveDirPath := storage.GetDownloadDirPath()
 
 	finalSavePath := saveDirPath + "/" + fileName
