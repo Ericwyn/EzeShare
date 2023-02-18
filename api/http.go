@@ -14,8 +14,8 @@ func StartReceiverHttpServer() {
 	s := &http.Server{
 		Addr:           addr,
 		Handler:        NewMux(),
-		ReadTimeout:    10 * time.Second,
-		WriteTimeout:   10 * time.Second,
+		ReadTimeout:    10 * time.Minute,
+		WriteTimeout:   10 * time.Minute,
 		MaxHeaderBytes: 1 << 20,
 	}
 	log.I("start http server in Addr ", addr)
