@@ -13,7 +13,7 @@ import (
 	"os"
 )
 
-var version = "v1.0-beta3"
+var version = "v1.0-beta4"
 
 var showVersion = flag.Bool("v", false, "show version")
 var uiMode = flag.String("ui", "terminal", "set ui mode")
