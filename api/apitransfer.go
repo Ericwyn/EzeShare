@@ -22,7 +22,7 @@ func apiReceiver(ctx *gin.Context) {
 	timeStampParam, timeStampExit := ctx.GetPostForm("timeStamp")
 	permType, permTypeExit := ctx.GetPostForm("permType")
 	senderName, _ := ctx.GetPostForm("senderName")
-	FileSizeBytes, _ := ctx.GetPostForm("FileSizeBytes")
+	fileSizeBytes, _ := ctx.GetPostForm("fileSizeBytes")
 
 	if !signExit || !timeStampExit || !permTypeExit || !fileNameExit {
 		ctx.JSON(200, apidef.PubResp[types.Nil]{
@@ -64,7 +64,7 @@ func apiReceiver(ctx *gin.Context) {
 		signCheck = auth.FileTransferSign(transferMsg.OnceToken, fileNameParam, timeStampSec)
 	} else if permType == string(apidef.PermTypeAlways) {
 		token := auth.GetSelfToken()
-		fileSizeBytes, err := strconv.ParseInt(FileSizeBytes, 10, 64)
+		fileSizeBytes, err := strconv.ParseInt(fileSizeBytes, 10, 64)
 		if err != nil {
 			ctx.JSON(200, apidef.PubResp[types.Nil]{
 				Code: apidef.RespCodeParamError,

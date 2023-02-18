@@ -142,14 +142,14 @@ func doFileTransferOnce(param fileTransferReqParam, uploadFile *UploadFile) stri
 	_, err = io.Copy(part, uploadFile)
 
 	otherParamMap := map[string]string{
-		"sign":         auth.FileTransferSign(param.decryptToken, param.file.Name(), unixTimeStamp),
-		"transferId":   param.transferId,
-		"fileName":     param.file.Name(),
-		"senderName":   deviceutils.GetDeviceName(),
-		"fileSizeBits": strconv.FormatInt(param.file.Size(), 10),
-		"permType":     string(param.permTypeReq),
-		"timeStamp":    strconv.Itoa(int(unixTimeStamp)),
-		"isSlice":      fmt.Sprint(param.isSlice),
+		"sign":          auth.FileTransferSign(param.decryptToken, param.file.Name(), unixTimeStamp),
+		"transferId":    param.transferId,
+		"fileName":      param.file.Name(),
+		"senderName":    deviceutils.GetDeviceName(),
+		"fileSizeBytes": strconv.FormatInt(param.file.Size(), 10),
+		"permType":      string(param.permTypeReq),
+		"timeStamp":     strconv.Itoa(int(unixTimeStamp)),
+		"isSlice":       fmt.Sprint(param.isSlice),
 	}
 
 	if param.isSlice {
